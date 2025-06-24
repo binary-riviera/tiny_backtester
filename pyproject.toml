@@ -1,0 +1,14 @@
+[tool.poetry]
+name = "tiny-backtester"
+version = "0.0.1"
+description = "A tiny backtesting framework using Pandas"
+authors = ["Daniel Cripps <binary.riviera@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.13"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

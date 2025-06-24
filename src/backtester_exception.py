@@ -1,0 +1,2 @@
+class BacktesterException(Exception):
+    pass
