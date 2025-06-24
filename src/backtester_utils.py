@@ -1,4 +1,3 @@
-
-MANDATORY_DF_COLUMNS = {'Open', 'High', 'Low', 'Close', 'Datetime'}
-OPTIONAL_DF_COLUMNS = {'Volume'}
+MANDATORY_DF_COLUMNS = {"Open", "High", "Low", "Close", "Datetime"}
+OPTIONAL_DF_COLUMNS = {"Volume"}
 DF_COLUMNS = MANDATORY_DF_COLUMNS | OPTIONAL_DF_COLUMNS
