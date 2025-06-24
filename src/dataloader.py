@@ -1,7 +1,7 @@
 from pandas import DataFrame, read_csv
 from pathlib import Path
 from backtester_utils import DF_COLUMNS
-from backtester_types import Dataset
+from backtester_types import Datasets
 import numpy as np
 from backtester_exception import BacktesterException
 

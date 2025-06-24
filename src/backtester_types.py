@@ -14,4 +14,4 @@ class Order(NamedTuple):
     quantity: int
 
 
-Dataset = dict[str, DataFrame]
+Datasets = dict[str, DataFrame]
