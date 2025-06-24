@@ -11,6 +11,4 @@ class Order(NamedTuple):
     order_type: OrderType
     quantity: int
 
-class Dataset(NamedTuple):
-    ticker: str
-    data: DataFrame
+Dataset = dict[str, DataFrame]

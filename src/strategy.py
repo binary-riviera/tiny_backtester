@@ -2,11 +2,12 @@ from abc import ABC, abstractmethod
 from backtester_types import Order, Dataset
 
 class Strategy:
+    tickers: set[str]
 
     @abstractmethod
-    def preload(data: list[Dataset]) -> None:
+    def preload(self, data: Dataset) -> None:
         """Calculate new columns on data"""
-       pass 
+        pass 
 
     @abstractmethod
     def run(self, data: list[Dataset]) -> list[Order]:
