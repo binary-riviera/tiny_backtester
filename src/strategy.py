@@ -1,10 +1,9 @@
 from abc import ABC, abstractmethod
-from backtester_types import Order
-from pandas import DataFrame
+from backtester_types import Order, Dataset
 
 class Strategy:
 
     @abstractmethod
-    def run(self, data: DataFrame) -> list[Order]:
+    def run(self, data: list[Dataset]) -> list[Order]:
         pass
 
