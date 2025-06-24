@@ -1,1 +1,1 @@
-tiny backtester in 200 loc
+tiny backtesting framework in 200 loc
