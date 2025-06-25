@@ -1,9 +1,9 @@
 from typing import Optional
 from pandas import DataFrame, read_csv
 from pathlib import Path
-from backtester_utils import DF_COLUMNS
+from .utils import DF_COLUMNS
 import numpy as np
-from backtester_exception import BacktesterException
+from .backtester_exception import BacktesterException
 
 
 def load_csv(

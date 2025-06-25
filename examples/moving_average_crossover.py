@@ -1,0 +1,20 @@
+from tiny_backtester.backtester_types import Datasets
+from tiny_backtester.strategy import Strategy
+import pandas as pdx
+
+
+class MovingAverageCrossover(Strategy):
+
+    def __init__(self, ticker: str):
+        super().__init__()
+        self.ticker = ticker
+
+    def preload(self, data: Datasets):
+        df = data[self.ticker]
+
+    def run(self, data: Datasets):
+        pass
+
+
+if __name__ == "__main__":
+    mac = MovingAverageCrossover()

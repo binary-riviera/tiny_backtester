@@ -2,6 +2,7 @@
 authors = ["Daniel Cripps <binary.riviera@gmail.com>"]
 description = "A tiny backtesting framework using Pandas"
 name = "tiny-backtester"
+packages = [{include = "tiny_backtester", from = "src"}]
 readme = "README.md"
 version = "0.0.1"
 
@@ -17,10 +18,5 @@ build-backend = "poetry.core.masonry.api"
 requires = ["poetry-core"]
 
 [tool.pytest.ini_options]
-addopts = [
-  "--import-mode=importlib",
-]
-pythonpath = "tiny_backtester"
-testpaths = [
-  "tests",
-]
+python_files = "test_*.py"
+testpaths = ["tests"]

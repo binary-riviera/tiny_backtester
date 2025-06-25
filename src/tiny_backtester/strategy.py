@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from typing import Optional
-from backtester_types import Order, Datasets
+from .backtester_types import Order, Datasets
 
 
 class Strategy(ABC):

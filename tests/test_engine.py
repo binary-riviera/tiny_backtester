@@ -1,10 +1,10 @@
 from pandas import DataFrame
-from backtester_exception import BacktesterException
-from backtester_types import Order, OrderStatus, OrderType
-from engine import Engine
+from tiny_backtester.backtester_exception import BacktesterException
+from tiny_backtester.backtester_types import Order, OrderStatus, OrderType
+from tiny_backtester.engine import Engine
 import pytest
 
-from strategy import Strategy
+from tiny_backtester.strategy import Strategy
 
 
 def get_strategy(tickers, funds, portfolio=None):

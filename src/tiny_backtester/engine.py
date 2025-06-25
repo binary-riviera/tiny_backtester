@@ -1,8 +1,8 @@
 from typing import Optional
-from strategy import Strategy
-from backtester_exception import BacktesterException
-from backtester_types import Datasets, ExecutedOrder, Order, OrderStatus, OrderType
-from dataloader import load_csv
+from .strategy import Strategy
+from .backtester_exception import BacktesterException
+from .backtester_types import Datasets, ExecutedOrder, Order, OrderStatus, OrderType
+from .dataloader import load_csv
 
 
 class Engine:
