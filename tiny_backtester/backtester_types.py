@@ -6,22 +6,27 @@ from pandas import DataFrame
 class OrderType(Enum):
     BUY = auto()
     SELL = auto()
+    BUY_LIMIT = auto()
+    SELL_LIMIT = auto()
 
 
 class OrderStatus(Enum):
     FILLED = auto()
     REJECTED = auto()
+    UNSUPPORTED = auto()
 
 
 class Order(NamedTuple):
     ticker: str
-    order_type: OrderType
+    type: OrderType
     quantity: int
+    limit_price: float | None = None
 
 
 class ExecutedOrder(NamedTuple):
     strategy_id: str
-    order_type: OrderType
+    ticker: str
+    type: OrderType
     quantity: int
     price: float
     status: OrderStatus

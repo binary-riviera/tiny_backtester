@@ -1,7 +1,7 @@
 from typing import Optional
 from strategy import Strategy
 from backtester_exception import BacktesterException
-from backtester_types import Datasets, ExecutedOrder, Order, OrderStatus
+from backtester_types import Datasets, ExecutedOrder, Order, OrderStatus, OrderType
 from dataloader import load_csv
 
 
@@ -46,20 +46,25 @@ class Engine:
         self, strategy: Strategy, order: Order, cur_data: Datasets
     ) -> ExecutedOrder:
         price = cur_data[order.ticker].iloc[-1].values[0]
-        total_order_price = price * order.quantity
-        if total_order_price > strategy.funds:
+
+        def make_executed_order(status: OrderStatus) -> ExecutedOrder:
             return ExecutedOrder(
-                strategy.__name__,
-                order.order_type,
-                order.quantity,
-                price,
-                OrderStatus.REJECTED,
+                strategy.label, order.ticker, order.type, order.quantity, price, status
             )
-        strategy.funds -= total_order_price
-        return ExecutedOrder(
-            strategy.__name__,
-            order.order_type,
-            order.quantity,
-            price,
-            OrderStatus.FILLED,
-        )
+
+        total_order_price = price * order.quantity
+        match order.type:
+            case OrderType.BUY:
+                if total_order_price > strategy.funds:
+                    return make_executed_order(OrderStatus.REJECTED)
+                strategy.funds -= total_order_price
+                strategy.portfolio[order.ticker] += order.quantity
+                return make_executed_order(OrderStatus.FILLED)
+            case OrderType.SELL:
+                if strategy.portfolio[order.ticker] < order.quantity:
+                    return make_executed_order(OrderStatus.REJECTED)
+                strategy.funds += total_order_price
+                strategy.portfolio[order.ticker] -= order.quantity
+                return make_executed_order(OrderStatus.FILLED)
+            case _:
+                return make_executed_order(OrderStatus.UNSUPPORTED)
