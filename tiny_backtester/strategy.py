@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Optional
 from backtester_types import Order, Datasets
 
 
@@ -12,6 +13,6 @@ class Strategy(ABC):
         pass
 
     @abstractmethod
-    def run(self, data: Datasets) -> list[Order]:
+    def run(self, data: Datasets) -> Optional[list[Order]]:
         """Individual strategy run on each epoch, returns a list of orders"""
         pass

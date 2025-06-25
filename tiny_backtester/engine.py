@@ -1,15 +1,16 @@
+from typing import Optional
 from strategy import Strategy
 from backtester_exception import BacktesterException
-from backtester_types import Datasets
+from backtester_types import Datasets, ExecutedOrder, Order, OrderStatus
 from dataloader import load_csv
 
 
 class Engine:
     data: Datasets = {}
 
-    def load_dataset(self, filepath: str, ticker: str):
+    def load_dataset(self, filepath: str, ticker: Optional[str] = None):
         if not filepath:
-            raise BacktesterException("Must provide filepath")
+            raise BacktesterException("must provide filepath")
         ticker, data = load_csv(filepath, ticker)
         self.data[ticker] = data
 
@@ -17,9 +18,7 @@ class Engine:
         if not strategy.funds or strategy.funds <= 0:
             raise BacktesterException("strategy funds must be greater than 0")
         if not self.data or len(self.data) == 0:
-            raise BacktesterException("Must provide dataframe for backtesting")
-        if not isinstance(strategy, Strategy):
-            raise BacktesterException("strategy must be instance of class Strategy")
+            raise BacktesterException("must provide data for backtesting")
         if not strategy.tickers or len(strategy.tickers) == 0:
             raise BacktesterException("strategy must have tickers to run strategy on")
         if not strategy.tickers.issubset(set(self.data.keys())):
@@ -37,3 +36,32 @@ class Engine:
                 ticker: self.data[ticker].iloc[:i] for ticker in strategy.tickers
             }
             orders = strategy.run(cur_data)
+            # execute orders
+
+    def execute_orders(
+        self, strategy: Strategy, orders: list[Order], cur_data: Datasets
+    ) -> list[ExecutedOrder]:
+        return [self.execute_order(strategy, order, cur_data) for order in orders]
+
+    def execute_order(
+        self, strategy: Strategy, order: Order, cur_data: Datasets
+    ) -> ExecutedOrder:
+        last_ohlc = cur_data[order.ticker].iloc[-1]
+        price = cur_data["Close"].values[0]
+        total_order_price = price * order.quantity
+        if total_order_price > strategy.funds:
+            return ExecutedOrder(
+                strategy.__name__,
+                order.order_type,
+                order.quantity,
+                price,
+                OrderStatus.REJECTED,
+            )
+        strategy.funds -= total_order_price
+        return ExecutedOrder(
+            strategy.__name__,
+            order.order_type,
+            order.quantity,
+            price,
+            OrderStatus.FILLED,
+        )
