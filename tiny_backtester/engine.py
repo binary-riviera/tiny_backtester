@@ -29,14 +29,13 @@ class Engine:
         strategy.preload(self.data)
         print("preloaded data")
         # not sure if this is the best approach, but I'm going to find the shortest dataset in tickers then just step through that
-        # later I can come up with a better approach
         length = min([len(self.data[ticker]) for ticker in strategy.tickers])
         for i in range(length + 1):
             cur_data = {
                 ticker: self.data[ticker].iloc[:i] for ticker in strategy.tickers
             }
-            orders = strategy.run(cur_data)
-            # execute orders
+            if orders := strategy.run(cur_data):
+                self.execute_orders(strategy, orders, cur_data)
 
     def execute_orders(
         self, strategy: Strategy, orders: list[Order], cur_data: Datasets
@@ -46,8 +45,7 @@ class Engine:
     def execute_order(
         self, strategy: Strategy, order: Order, cur_data: Datasets
     ) -> ExecutedOrder:
-        last_ohlc = cur_data[order.ticker].iloc[-1]
-        price = cur_data["Close"].values[0]
+        price = cur_data[order.ticker].iloc[-1].values[0]
         total_order_price = price * order.quantity
         if total_order_price > strategy.funds:
             return ExecutedOrder(

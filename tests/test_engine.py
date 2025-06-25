@@ -38,6 +38,7 @@ def test_run_no_funds():
 
 def test_run_no_data():
     engine = Engine()
+    engine.data = {}
     strategy = get_strategy(set(), 10000)
     with pytest.raises(BacktesterException, match="must provide data for backtesting"):
         engine.run(strategy)
