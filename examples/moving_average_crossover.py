@@ -11,10 +11,13 @@ class MovingAverageCrossover(Strategy):
 
     def preload(self, data: Datasets):
         df = data[self.ticker]
+        df["Mean"] = df[["High", "Low"]].mean(axis=1)
+        df["Moving Average 10"] = df["Mean"].rolling(10, closed="both").mean()
+        df["Moving Average 60"] = df["Mean"].rolling(60, closed="both").mean()
 
     def run(self, data: Datasets):
         pass
 
 
 if __name__ == "__main__":
-    mac = MovingAverageCrossover()
+    mac = MovingAverageCrossover("GOOG")
