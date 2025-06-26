@@ -32,4 +32,4 @@ class ExecutedOrder(NamedTuple):
     status: OrderStatus
 
 
-Datasets = dict[str, DataFrame]
+MarketData = dict[str, DataFrame]

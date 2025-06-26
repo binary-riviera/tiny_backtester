@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from typing import Optional
-from .backtester_types import Order, Datasets
+from .backtester_types import Order, MarketData
 
 
 class Strategy(ABC):
@@ -18,11 +18,11 @@ class Strategy(ABC):
         self.label = f"{cls.__name__}_{self._id}"
 
     @abstractmethod
-    def preload(self, data: Datasets) -> None:
+    def preload(self, data: MarketData) -> None:
         """Calculate new columns on data"""
         pass
 
     @abstractmethod
-    def run(self, data: Datasets) -> Optional[list[Order]]:
+    def run(self, data: MarketData) -> Optional[list[Order]]:
         """Individual strategy run on each epoch, returns a list of orders"""
         pass

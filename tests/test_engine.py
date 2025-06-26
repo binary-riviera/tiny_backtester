@@ -7,7 +7,7 @@ import pytest
 from tiny_backtester.strategy import Strategy
 
 
-def get_strategy(tickers, funds, portfolio=None):
+def get_test_strategy(tickers, funds, portfolio=None):
     class TestStrategy(Strategy):
         def __init__(self, tickers, funds):
             super().__init__()
@@ -25,19 +25,19 @@ def get_strategy(tickers, funds, portfolio=None):
     return TestStrategy(tickers, funds)
 
 
-def get_dataset(ticker):
+def get_test_market_data(ticker):
     return {ticker: DataFrame(data={"Close": [1.0]})}
 
 
-def test_load_dataset_filepath_not_provided():
+def test_load_timeseries_filepath_not_provided():
     engine = Engine()
     with pytest.raises(BacktesterException, match="must provide filepath"):
-        engine.load_dataset("")
+        engine.load_timeseries("")
 
 
 def test_run_no_funds():
     engine = Engine()
-    strategy = get_strategy(set(), 0)
+    strategy = get_test_strategy(set(), 0)
     with pytest.raises(
         BacktesterException, match="strategy funds must be greater than 0"
     ):
@@ -46,16 +46,16 @@ def test_run_no_funds():
 
 def test_run_no_data():
     engine = Engine()
-    engine.data = {}
-    strategy = get_strategy(set(), 10000)
+    engine.market_data = {}
+    strategy = get_test_strategy(set(), 10000)
     with pytest.raises(BacktesterException, match="must provide data for backtesting"):
         engine.run(strategy)
 
 
 def test_run_no_tickers():
     engine = Engine()
-    engine.data = {"test": DataFrame()}
-    strategy = get_strategy(set(), 10000)
+    engine.market_data = {"test": DataFrame()}
+    strategy = get_test_strategy(set(), 10000)
     with pytest.raises(
         BacktesterException, match="strategy must have tickers to run strategy on"
     ):
@@ -64,8 +64,8 @@ def test_run_no_tickers():
 
 def test_run_ticker_data_not_found():
     engine = Engine()
-    engine.data = {"test": DataFrame()}
-    strategy = get_strategy({"invalid_ticker"}, 10000)
+    engine.market_data = {"test": DataFrame()}
+    strategy = get_test_strategy({"invalid_ticker"}, 10000)
     with pytest.raises(
         BacktesterException, match="data for tickers not found: {'invalid_ticker'}"
     ):
@@ -74,10 +74,10 @@ def test_run_ticker_data_not_found():
 
 def test_execute_order_buy_valid():
     engine = Engine()
-    strategy = get_strategy(set(), 10000)
+    strategy = get_test_strategy(set(), 10000)
     order = Order("TEST", OrderType.BUY, 1)
-    dataset = get_dataset("TEST")
-    executed_order = engine.execute_order(strategy, order, cur_data=dataset)
+    market_data = get_test_market_data("TEST")
+    executed_order = engine.execute_order(strategy, order, cur_data=market_data)
     assert executed_order.price == 1.0
     assert executed_order.quantity == 1
     assert executed_order.ticker == "TEST"
@@ -86,10 +86,10 @@ def test_execute_order_buy_valid():
 
 def test_execute_order_buy_invalid():
     engine = Engine()
-    strategy = get_strategy(set(), 1)
+    strategy = get_test_strategy(set(), 1)
     order = Order("TEST", OrderType.BUY, 100)
-    dataset = get_dataset("TEST")
-    executed_order = engine.execute_order(strategy, order, cur_data=dataset)
+    market_data = get_test_market_data("TEST")
+    executed_order = engine.execute_order(strategy, order, cur_data=market_data)
     assert executed_order.price == 1.0
     assert executed_order.quantity == 100
     assert executed_order.ticker == "TEST"
@@ -98,10 +98,10 @@ def test_execute_order_buy_invalid():
 
 def test_execute_order_sell_valid():
     engine = Engine()
-    strategy = get_strategy(set(), 1, {"TEST": 20})
+    strategy = get_test_strategy(set(), 1, {"TEST": 20})
     order = Order("TEST", OrderType.SELL, 10)
-    dataset = get_dataset("TEST")
-    executed_order = engine.execute_order(strategy, order, cur_data=dataset)
+    market_data = get_test_market_data("TEST")
+    executed_order = engine.execute_order(strategy, order, cur_data=market_data)
     assert executed_order.price == 1.0
     assert executed_order.quantity == 10
     assert executed_order.ticker == "TEST"
@@ -111,10 +111,10 @@ def test_execute_order_sell_valid():
 
 def test_execute_order_sell_invalid():
     engine = Engine()
-    strategy = get_strategy(set(), 1, {"TEST": 1})
+    strategy = get_test_strategy(set(), 1, {"TEST": 1})
     order = Order("TEST", OrderType.SELL, 10)
-    dataset = get_dataset("TEST")
-    executed_order = engine.execute_order(strategy, order, cur_data=dataset)
+    market_data = get_test_market_data("TEST")
+    executed_order = engine.execute_order(strategy, order, cur_data=market_data)
     assert executed_order.price == 1.0
     assert executed_order.quantity == 10
     assert executed_order.ticker == "TEST"
@@ -124,8 +124,8 @@ def test_execute_order_sell_invalid():
 
 def test_execute_order_invalid_order_type():
     engine = Engine()
-    strategy = get_strategy(set(), 1)
+    strategy = get_test_strategy(set(), 1)
     order = Order("TEST", OrderType.BUY_LIMIT, 1)
-    dataset = get_dataset("TEST")
-    executed_order = engine.execute_order(strategy, order, cur_data=dataset)
+    market_data = get_test_market_data("TEST")
+    executed_order = engine.execute_order(strategy, order, cur_data=market_data)
     assert executed_order.status == OrderStatus.UNSUPPORTED
