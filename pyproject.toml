@@ -4,7 +4,7 @@ description = "A tiny backtesting framework using Pandas"
 name = "tiny-backtester"
 packages = [{include = "tiny_backtester", from = "src"}]
 readme = "README.md"
-version = "0.0.1"
+version = "0.0.2"
 
 [tool.poetry.dependencies]
 pandas = "^2.3.0"
@@ -12,6 +12,7 @@ python = "^3.13"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.4.1"
+pytest-cov = "^6.2.1"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
