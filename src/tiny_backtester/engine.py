@@ -14,7 +14,7 @@ class Engine:
         ticker, data = load_csv(filepath, ticker)
         self.data[ticker] = data
 
-    def run(self, strategy: Strategy):
+    def run(self, strategy: Strategy, n_epochs: int = 1000000):
         if not strategy.funds or strategy.funds <= 0:
             raise BacktesterException("strategy funds must be greater than 0")
         if not self.data or len(self.data) == 0:
@@ -29,8 +29,10 @@ class Engine:
         strategy.preload(self.data)
         print("preloaded data")
         # not sure if this is the best approach, but I'm going to find the shortest dataset in tickers then just step through that
-        length = min([len(self.data[ticker]) for ticker in strategy.tickers])
-        for i in range(length + 1):
+        n_epochs = min(
+            *[len(self.data[ticker]) for ticker in strategy.tickers], n_epochs
+        )
+        for i in range(n_epochs + 1):
             cur_data = {
                 ticker: self.data[ticker].iloc[:i] for ticker in strategy.tickers
             }
