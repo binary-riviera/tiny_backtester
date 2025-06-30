@@ -39,12 +39,6 @@ def get_test_market_data(ticker):
     }
 
 
-def test_load_timeseries_filepath_not_provided():
-    engine = Engine()
-    with pytest.raises(BacktesterException, match="must provide filepath"):
-        engine.load_timeseries_from_csv("")
-
-
 def test_run_no_funds():
     engine = Engine()
     strategy = get_test_strategy(set(), 0)

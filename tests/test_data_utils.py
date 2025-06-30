@@ -1,15 +1,7 @@
 from datetime import datetime, timedelta
 from pandas import DataFrame
 
-from tiny_backtester.dataloader import is_regularly_spaced
-
-
-def test_load_csv_missing_cols():
-    pass
-
-
-def test_load_csv_irregular_spacing():
-    pass
+from tiny_backtester.data_utils import is_regularly_spaced
 
 
 def test_is_regularly_spaced_true():

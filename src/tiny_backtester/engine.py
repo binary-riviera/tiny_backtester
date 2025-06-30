@@ -2,10 +2,11 @@ from typing import Optional, assert_never
 import pandas as pd
 import numpy as np
 from numpy.typing import ArrayLike
+
+from tiny_backtester.data_utils import load_timeseries
 from .strategy import Strategy
 from .backtester_exception import BacktesterException
 from .backtester_types import MarketData, ExecutedOrder, Order, OrderStatus, OrderType
-from .dataloader import load_csv
 
 
 class Engine:
@@ -14,15 +15,9 @@ class Engine:
     # class variables
     market_data: MarketData = {}
 
-    def load_timeseries_from_csv(self, filepath: str, ticker: Optional[str] = None):
-        if not filepath:
-            raise BacktesterException("must provide filepath")
-        ticker, data = load_csv(filepath, ticker)
+    def load_timeseries(self, filepath: str, ticker: Optional[str] = None):
+        ticker, data = load_timeseries(filepath, ticker)
         self.market_data[ticker] = data
-
-    def load_timeseries_from_df(self, df: pd.DataFrame, ticker: str):
-        # TODO: check this data is correct
-        self.market_data[ticker] = df
 
     def run(self, strategy: Strategy, n_epochs: int | None = None):
         if not strategy.funds or strategy.funds <= 0:
@@ -38,14 +33,11 @@ class Engine:
             )
         strategy.preload(self.market_data)
         print("preloaded data")
-        # not sure if this is the best approach, but I'm going to find the shortest timeseries in tickers then just step through that
         min_data_length = min([len(self.market_data[t]) for t in strategy.tickers])
         n_epochs = min_data_length if not n_epochs else min(min_data_length, n_epochs)
         executed_orders: list[ExecutedOrder] = []
         for i in range(n_epochs + 1):
-            cur_data = {
-                ticker: self.market_data[ticker].iloc[:i] for ticker in strategy.tickers
-            }
+            cur_data = {t: self.market_data[t].iloc[:i] for t in strategy.tickers}
             if orders := strategy.run(cur_data):
                 executed_orders.extend(self.execute_orders(strategy, orders, cur_data))
 
@@ -85,17 +77,12 @@ class Engine:
 
     def get_execution_price(self, order: Order, timeseries: pd.DataFrame) -> np.float64:
         midpoint = (timeseries["high"].iloc[-1] + timeseries["low"].iloc[-1]) / 2
-        print(midpoint)
         half_bid_ask_spread = self.get_bid_ask_spread(timeseries["close"]) / 2
-        print(half_bid_ask_spread)
         slippage_pct = self.k * (order.quantity / timeseries["volume"].iloc[-1])
-        print(slippage_pct)
         match order.type:
             case OrderType.BUY | OrderType.BUY_LIMIT:
-                print("buy")
                 return (midpoint + half_bid_ask_spread) * (1 + slippage_pct)
             case OrderType.SELL | OrderType.SELL_LIMIT:
-                print("sell")
                 return (midpoint - half_bid_ask_spread) * (1 - slippage_pct)
 
     def get_bid_ask_spread(self, timeseries: ArrayLike) -> np.float64:
