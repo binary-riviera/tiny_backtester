@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 
 from tiny_backtester.backtester_exception import BacktesterException
+from tiny_backtester.backtester_types import ResampleType
 from tiny_backtester.constants import MANDATORY_DF_COLUMNS
 
 
@@ -32,3 +33,13 @@ def load_timeseries(
 def is_regularly_spaced(df: pd.DataFrame) -> np.bool:
     diff = np.diff(df.index.to_numpy())
     return np.all(diff == diff[0])
+
+
+def resample_market_data(
+    dataframes: list[pd.DataFrame], resampleType: ResampleType
+) -> list[pd.DataFrame]:
+    if resampleType == "upsample":
+        pass
+    else:
+        pass
+    return dataframes

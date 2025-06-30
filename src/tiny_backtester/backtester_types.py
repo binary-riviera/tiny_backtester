@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from typing import NamedTuple
+from typing import Literal, NamedTuple
 from pandas import DataFrame
 
 
@@ -33,3 +33,6 @@ class ExecutedOrder(NamedTuple):
 
 
 MarketData = dict[str, DataFrame]
+
+
+ResampleType = Literal["upsample", "downsample"]

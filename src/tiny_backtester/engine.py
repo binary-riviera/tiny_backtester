@@ -1,4 +1,4 @@
-from typing import Optional, assert_never
+from typing import Optional
 import pandas as pd
 import numpy as np
 from numpy.typing import ArrayLike
@@ -19,7 +19,7 @@ class Engine:
         ticker, data = load_timeseries(filepath, ticker)
         self.market_data[ticker] = data
 
-    def run(self, strategy: Strategy, n_epochs: int | None = None):
+    def run(self, strategy: Strategy, n_epochs: Optional[int] = None):
         if not strategy.funds or strategy.funds <= 0:
             raise BacktesterException("strategy funds must be greater than 0")
         if not self.market_data or len(self.market_data) == 0:
@@ -32,7 +32,6 @@ class Engine:
                 + str(strategy.tickers - set(self.market_data.keys()))
             )
         strategy.preload(self.market_data)
-        print("preloaded data")
         min_data_length = min([len(self.market_data[t]) for t in strategy.tickers])
         n_epochs = min_data_length if not n_epochs else min(min_data_length, n_epochs)
         executed_orders: list[ExecutedOrder] = []
