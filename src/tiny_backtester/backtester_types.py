@@ -33,6 +33,3 @@ class ExecutedOrder(NamedTuple):
 
 
 MarketData = dict[str, DataFrame]
-
-
-ResampleType = Literal["upsample", "downsample"]
