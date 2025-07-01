@@ -2,3 +2,4 @@ __pycache__
 .mypy
 settings.json
 .coverage
+notebooks
