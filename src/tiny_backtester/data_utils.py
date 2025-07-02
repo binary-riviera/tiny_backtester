@@ -20,6 +20,7 @@ def load_timeseries(
             raise BacktesterException("ticker must be provided for DataFrame data")
     else:
         raise BacktesterException("data_source must be filepath or DataFrame")
+    # TODO: verify index
     if missing_cols := MANDATORY_DF_COLUMNS - set(data_source.columns):
         raise BacktesterException(f"missing columns: {missing_cols}")
     if check_datetime_spacing and not is_regularly_spaced(data_source):

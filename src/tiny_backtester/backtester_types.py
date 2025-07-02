@@ -1,13 +1,11 @@
 from enum import Enum, auto
-from typing import Literal, NamedTuple
+from typing import NamedTuple
 from pandas import DataFrame
 
 
 class OrderType(Enum):
     BUY = auto()
     SELL = auto()
-    BUY_LIMIT = auto()
-    SELL_LIMIT = auto()
 
 
 class OrderStatus(Enum):

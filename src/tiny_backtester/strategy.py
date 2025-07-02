@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from typing import Optional
+
+from tiny_backtester.constants import DEFAULT_FUNDS
 from .backtester_types import Order, MarketData
 from numpy import float64
 
@@ -8,7 +10,7 @@ from numpy import float64
 class Strategy(ABC):
     tickers: set[str]
     portfolio: dict[str, int] = defaultdict(int)
-    funds: float64 = float64(10000)
+    funds = float64(DEFAULT_FUNDS)
     _counters = {}
 
     def __init__(self):

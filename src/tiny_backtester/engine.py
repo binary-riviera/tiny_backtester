@@ -75,14 +75,16 @@ class Engine:
                 return make_executed_order(OrderStatus.UNSUPPORTED)
 
     def get_execution_price(self, order: Order, timeseries: pd.DataFrame) -> np.float64:
-        midpoint = (timeseries["high"].iloc[-1] + timeseries["low"].iloc[-1]) / 2
+        latest = timeseries.iloc[-1]
+        midpoint = (latest["high"] + latest["low"]) / 2
         half_bid_ask_spread = self.get_bid_ask_spread(timeseries["close"]) / 2
+        # TODO: above can all be precalculated and converted into numpy arrays for speed
         slippage_pct = self.k * (order.quantity / timeseries["volume"].iloc[-1])
         match order.type:
-            case OrderType.BUY | OrderType.BUY_LIMIT:
-                return (midpoint + half_bid_ask_spread) * (1 + slippage_pct)
-            case OrderType.SELL | OrderType.SELL_LIMIT:
-                return (midpoint - half_bid_ask_spread) * (1 - slippage_pct)
+            case OrderType.BUY:
+                return np.float64((midpoint + half_bid_ask_spread) * (1 + slippage_pct))
+            case OrderType.SELL:
+                return np.float64((midpoint - half_bid_ask_spread) * (1 - slippage_pct))
 
     def get_bid_ask_spread(self, timeseries: ArrayLike) -> np.float64:
         # implementation of "A Simple Implicit Measure of the Effective Bid-Ask Spread in an Efficient Market [1984], Roll"
