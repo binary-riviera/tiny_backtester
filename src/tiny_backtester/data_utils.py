@@ -14,14 +14,12 @@ def load_timeseries(
     if type(data_source) is str:
         ticker = ticker or Path(data_source).stem
         data_source = pd.read_csv(data_source, engine="c", index_col="datetime")
+        data_source.index = pd.to_datetime(data_source.index)
     elif type(data_source) is pd.DataFrame:
         if not ticker:
             raise BacktesterException("ticker must be provided for DataFrame data")
     else:
         raise BacktesterException("data_source must be filepath or DataFrame")
-
-    data_source.columns.str.lower()
-    # TODO: set Datetime as datetime data type
     if missing_cols := MANDATORY_DF_COLUMNS - set(data_source.columns):
         raise BacktesterException(f"missing columns: {missing_cols}")
     if check_datetime_spacing and not is_regularly_spaced(data_source):

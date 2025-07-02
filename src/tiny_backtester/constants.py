@@ -1,1 +1,1 @@
-MANDATORY_DF_COLUMNS = {"open", "high", "low", "close", "datetime"}
+MANDATORY_DF_COLUMNS = {"open", "high", "low", "close"}

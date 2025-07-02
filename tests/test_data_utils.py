@@ -39,8 +39,26 @@ def test_load_timeseries_dataframe_missing_cols():
         load_timeseries(invalid_df, "TEST")
 
 
+def test_load_timeseries_wrong_data_source_type():
+    with pytest.raises(
+        BacktesterException, match="data_source must be filepath or DataFrame"
+    ):
+        load_timeseries(1.0, "TEST")  # type: ignore
+
+
 def test_load_timeseries_is_irregular():
-    pass
+    now = datetime.now()
+    invalid_df = pd.DataFrame(
+        {
+            "open": [1, 2, 3],
+            "high": [1, 2, 3],
+            "low": [1, 2, 3],
+            "close": [1, 2, 3],
+        },
+        index=pd.Index([now, now + timedelta(1), now + timedelta(22)], name="datetime"),
+    )
+    with pytest.raises(BacktesterException, match="time series is irregular"):
+        load_timeseries(invalid_df, "TEST", check_datetime_spacing=True)
 
 
 def test_is_regularly_spaced_true():
