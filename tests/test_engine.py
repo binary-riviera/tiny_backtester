@@ -79,7 +79,7 @@ def test_run_ticker_data_not_found():
 def test_execute_order_buy_valid():
     engine = Engine()
     strategy = get_test_strategy(set(), 10000)
-    order = Order("TEST", OrderType.BUY, 1)
+    order = Order("TEST", "buy", 1)
     market_data = get_test_market_data("TEST")
     executed_order = engine.execute_order(strategy, order, cur_data=market_data)
     # assert executed_order.price == 1.0
@@ -91,7 +91,7 @@ def test_execute_order_buy_valid():
 def test_execute_order_buy_invalid():
     engine = Engine()
     strategy = get_test_strategy(set(), 1)
-    order = Order("TEST", OrderType.BUY, 100)
+    order = Order("TEST", "buy", 100)
     market_data = get_test_market_data("TEST")
     executed_order = engine.execute_order(strategy, order, cur_data=market_data)
     # assert executed_order.price == 1.0
@@ -103,7 +103,7 @@ def test_execute_order_buy_invalid():
 def test_execute_order_sell_valid():
     engine = Engine()
     strategy = get_test_strategy(set(), 1, {"TEST": 20})
-    order = Order("TEST", OrderType.SELL, 10)
+    order = Order("TEST", "sell", 10)
     market_data = get_test_market_data("TEST")
     executed_order = engine.execute_order(strategy, order, cur_data=market_data)
     # assert executed_order.price == 1.0
@@ -116,7 +116,7 @@ def test_execute_order_sell_valid():
 def test_execute_order_sell_invalid():
     engine = Engine()
     strategy = get_test_strategy(set(), 1, {"TEST": 1})
-    order = Order("TEST", OrderType.SELL, 10)
+    order = Order("TEST", "sell", 10)
     market_data = get_test_market_data("TEST")
     executed_order = engine.execute_order(strategy, order, cur_data=market_data)
     # assert executed_order.price == 1.0
@@ -129,7 +129,7 @@ def test_execute_order_sell_invalid():
 def test_execute_order_invalid_order_type():
     engine = Engine()
     strategy = get_test_strategy(set(), 1)
-    order = Order("TEST", OrderType.BUY, 1)
+    order = Order("TEST", "buy", 1)
     market_data = get_test_market_data("TEST")
     executed_order = engine.execute_order(strategy, order, cur_data=market_data)
     assert executed_order.status == OrderStatus.UNSUPPORTED

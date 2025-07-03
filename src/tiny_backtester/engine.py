@@ -81,13 +81,13 @@ class Engine:
 
         total_order_price = price * order.quantity
         match order.type:
-            case OrderType.BUY:
+            case "buy":
                 if total_order_price > strategy.funds:
                     return make_executed_order(OrderStatus.REJECTED)
                 strategy.funds -= total_order_price
                 strategy.portfolio[order.ticker] += order.quantity
                 return make_executed_order(OrderStatus.FILLED)
-            case OrderType.SELL:
+            case "sell":
                 if strategy.portfolio[order.ticker] < order.quantity:
                     return make_executed_order(OrderStatus.REJECTED)
                 strategy.funds += total_order_price
@@ -99,12 +99,13 @@ class Engine:
     def get_execution_price(self, order: Order, ts: pd.DataFrame) -> np.float64:
         latest = ts.iloc[-1]
         slippage_pct = order.quantity * latest["slippage"]
-        match order.type:
-            case OrderType.BUY:
-                return np.float64(
-                    (latest["midpoint"] + 0.5 * latest["spread"]) * (1 + slippage_pct)
-                )
-            case OrderType.SELL:
-                return np.float64(
-                    (latest["midpoint"] + 0.5 * latest["spread"]) * (1 - slippage_pct)
-                )
+        if order.type == "buy":
+            return np.float64(
+                (latest["midpoint"] + 0.5 * latest["spread"]) * (1 + slippage_pct)
+            )
+        elif order.type == "sell":
+            return np.float64(
+                (latest["midpoint"] + 0.5 * latest["spread"]) * (1 - slippage_pct)
+            )
+        else:
+            raise BacktesterException(f"invalid order type {order.type}")

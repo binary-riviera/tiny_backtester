@@ -1,11 +1,8 @@
 from enum import Enum, auto
-from typing import NamedTuple
+from typing import Literal, NamedTuple
 from pandas import DataFrame
 
-
-class OrderType(Enum):
-    BUY = auto()
-    SELL = auto()
+OrderType = Literal["buy", "sell"]
 
 
 class OrderStatus(Enum):
