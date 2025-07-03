@@ -80,21 +80,19 @@ class Engine:
             )
 
         total_order_price = price * order.quantity
-        match order.type:
-            case "buy":
-                if total_order_price > strategy.funds:
-                    return make_executed_order("rejected")
-                strategy.funds -= total_order_price
-                strategy.portfolio[order.ticker] += order.quantity
-                return make_executed_order("filled")
-            case "sell":
-                if strategy.portfolio[order.ticker] < order.quantity:
-                    return make_executed_order("rejected")
-                strategy.funds += total_order_price
-                strategy.portfolio[order.ticker] -= order.quantity
-                return make_executed_order("filled")
-            case _:
-                return make_executed_order("unsupported")
+        if order.type == "buy":
+            if total_order_price > strategy.funds:
+                return make_executed_order("rejected")
+            strategy.funds -= total_order_price
+            strategy.portfolio[order.ticker] += order.quantity
+            return make_executed_order("filled")
+        elif order.type == "sell":
+            if strategy.portfolio[order.ticker] < order.quantity:
+                return make_executed_order("rejected")
+            strategy.funds += total_order_price
+            strategy.portfolio[order.ticker] -= order.quantity
+            return make_executed_order("filled")
+        return make_executed_order("unsupported")
 
     def get_execution_price(self, order: Order, ts: pd.DataFrame) -> np.float64:
         latest = ts.iloc[-1]
@@ -107,5 +105,4 @@ class Engine:
             return np.float64(
                 (latest["midpoint"] + 0.5 * latest["spread"]) * (1 - slippage_pct)
             )
-        else:
-            return np.float64(np.nan)  # why do I need to cast this????
+        return np.float64(np.nan)  # why do I need to cast this????
