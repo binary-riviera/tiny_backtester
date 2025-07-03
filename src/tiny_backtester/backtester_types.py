@@ -4,11 +4,7 @@ from pandas import DataFrame
 
 OrderType = Literal["buy", "sell"]
 
-
-class OrderStatus(Enum):
-    FILLED = auto()
-    REJECTED = auto()
-    UNSUPPORTED = auto()
+OrderStatus = Literal["filled", "rejected", "unsupported"]
 
 
 class Order(NamedTuple):

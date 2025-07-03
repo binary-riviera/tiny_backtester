@@ -83,18 +83,18 @@ class Engine:
         match order.type:
             case "buy":
                 if total_order_price > strategy.funds:
-                    return make_executed_order(OrderStatus.REJECTED)
+                    return make_executed_order("rejected")
                 strategy.funds -= total_order_price
                 strategy.portfolio[order.ticker] += order.quantity
-                return make_executed_order(OrderStatus.FILLED)
+                return make_executed_order("filled")
             case "sell":
                 if strategy.portfolio[order.ticker] < order.quantity:
-                    return make_executed_order(OrderStatus.REJECTED)
+                    return make_executed_order("rejected")
                 strategy.funds += total_order_price
                 strategy.portfolio[order.ticker] -= order.quantity
-                return make_executed_order(OrderStatus.FILLED)
+                return make_executed_order("filled")
             case _:
-                return make_executed_order(OrderStatus.UNSUPPORTED)
+                return make_executed_order("unsupported")
 
     def get_execution_price(self, order: Order, ts: pd.DataFrame) -> np.float64:
         latest = ts.iloc[-1]

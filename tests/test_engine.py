@@ -85,7 +85,7 @@ def test_execute_order_buy_valid():
     # assert executed_order.price == 1.0
     assert executed_order.quantity == 1
     assert executed_order.ticker == "TEST"
-    assert executed_order.status == OrderStatus.FILLED
+    assert executed_order.status == "filled"
 
 
 def test_execute_order_buy_invalid():
@@ -97,7 +97,7 @@ def test_execute_order_buy_invalid():
     # assert executed_order.price == 1.0
     assert executed_order.quantity == 100
     assert executed_order.ticker == "TEST"
-    assert executed_order.status == OrderStatus.REJECTED
+    assert executed_order.status == "rejected"
 
 
 def test_execute_order_sell_valid():
@@ -109,7 +109,7 @@ def test_execute_order_sell_valid():
     # assert executed_order.price == 1.0
     assert executed_order.quantity == 10
     assert executed_order.ticker == "TEST"
-    assert executed_order.status == OrderStatus.FILLED
+    assert executed_order.status == "filled"
     assert strategy.portfolio["TEST"] == 10
 
 
@@ -122,7 +122,7 @@ def test_execute_order_sell_invalid():
     # assert executed_order.price == 1.0
     assert executed_order.quantity == 10
     assert executed_order.ticker == "TEST"
-    assert executed_order.status == OrderStatus.REJECTED
+    assert executed_order.status == "rejected"
     assert strategy.portfolio["TEST"] == 1
 
 
@@ -132,4 +132,4 @@ def test_execute_order_invalid_order_type():
     order = Order("TEST", "buy", 1)
     market_data = get_test_market_data("TEST")
     executed_order = engine.execute_order(strategy, order, cur_data=market_data)
-    assert executed_order.status == OrderStatus.UNSUPPORTED
+    assert executed_order.status == "unsupported"
