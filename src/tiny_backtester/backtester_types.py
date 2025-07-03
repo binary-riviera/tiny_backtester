@@ -14,7 +14,6 @@ class Order(NamedTuple):
 
 
 class ExecutedOrder(NamedTuple):
-    strategy_id: str
     ticker: str
     type: OrderType
     quantity: int

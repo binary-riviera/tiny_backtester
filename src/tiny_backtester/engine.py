@@ -77,7 +77,7 @@ class Engine:
 
         def make_executed_order(status: OrderStatus) -> ExecutedOrder:
             return ExecutedOrder(
-                strategy.label, order.ticker, order.type, order.quantity, price, status
+                order.ticker, order.type, order.quantity, price, status
             )
 
         total_order_price = price * order.quantity
