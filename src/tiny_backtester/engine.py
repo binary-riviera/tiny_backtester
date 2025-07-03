@@ -31,7 +31,7 @@ class Engine:
             if self.spread_type == "fixed":
                 # implementation of "A Simple Implicit Measure of the Effective Bid-Ask Spread in an Efficient Market [1984], Roll"
                 delta = np.diff(df["close"].to_numpy())
-                cov = np.cov(delta)[0, 0]
+                cov = np.cov(delta)
                 spread = 2 * np.sqrt(-cov) if cov < 0 else 0.0
                 df["spread"] = spread
                 # TODO: store spread as seperate attribute in market_data
@@ -72,6 +72,7 @@ class Engine:
     def execute_order(
         self, strategy: Strategy, order: Order, cur_data: MarketData
     ) -> ExecutedOrder:
+        # TODO: implement limit orders
         price = self.get_execution_price(order, cur_data[order.ticker])
 
         def make_executed_order(status: OrderStatus) -> ExecutedOrder:
