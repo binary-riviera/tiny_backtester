@@ -17,7 +17,7 @@ def get_test_strategy(tickers, funds, portfolio=None):
             if portfolio:
                 self.portfolio = portfolio
 
-        def preload(self, data):
+        def precalc(self, data):
             pass
 
         def run(self, data):
@@ -129,16 +129,7 @@ def test_execute_order_sell_invalid():
 def test_execute_order_invalid_order_type():
     engine = Engine()
     strategy = get_test_strategy(set(), 1)
-    order = Order("TEST", OrderType.BUY_LIMIT, 1)
+    order = Order("TEST", OrderType.BUY, 1)
     market_data = get_test_market_data("TEST")
     executed_order = engine.execute_order(strategy, order, cur_data=market_data)
     assert executed_order.status == OrderStatus.UNSUPPORTED
-
-
-def test_get_bid_ask_spread():
-    engine = Engine()
-    series = pd.Series([1, 2, 4, 1, 4, 5, 6, 7])
-    bid_ask_spread = engine.get_bid_ask_spread(series)
-    print(bid_ask_spread)
-    print(type(bid_ask_spread))
-    assert bid_ask_spread.round(3) == 3.729

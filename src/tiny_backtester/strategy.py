@@ -24,7 +24,7 @@ class Strategy(ABC):
         return self.label
 
     @abstractmethod
-    def preload(self, data: MarketData) -> None:
+    def precalc(self, data: MarketData) -> None:
         """Calculate new columns on data"""
 
     @abstractmethod

@@ -8,7 +8,7 @@ class MovingAverageCrossover(Strategy):
         super().__init__()
         self.ticker = ticker
 
-    def preload(self, data: MarketData):
+    def precalc(self, data: MarketData):
         df = data[self.ticker]
         df["Mean"] = df[["High", "Low"]].mean(axis=1)
         df["Moving Average 10"] = df["Mean"].rolling(10, closed="both").mean()
