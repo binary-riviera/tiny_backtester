@@ -1,12 +1,12 @@
+from functools import cache
 from typing import Optional, Literal
 import pandas as pd
 import numpy as np
-from numpy.typing import ArrayLike
 
 from tiny_backtester.data_utils import load_timeseries
 from .strategy import Strategy
 from .backtester_exception import BacktesterException
-from .backtester_types import MarketData, ExecutedOrder, Order, OrderStatus, OrderType
+from .backtester_types import MarketData, ExecutedOrder, Order, OrderStatus
 
 
 class Engine:
@@ -62,8 +62,6 @@ class Engine:
             if orders := strategy.run(cur_data):
                 executed_orders.extend(self.execute_orders(strategy, orders, cur_data))
 
-        return {"executed_orders": pd.DataFrame(executed_orders)}
-
     def execute_orders(
         self, strategy: Strategy, orders: list[Order], cur_data: MarketData
     ) -> list[ExecutedOrder]:
@@ -107,3 +105,14 @@ class Engine:
                 (latest["midpoint"] + 0.5 * latest["spread"]) * (1 - slippage_pct)
             )
         return np.float64(np.nan)  # why do I need to cast this????
+
+    def get_hypothetical_pnl(self, orders: list[ExecutedOrder]):
+        # pnl at given point
+        # = orders executed up to that point
+        # and then
+        pass
+
+    def get_average_entry_price(
+        self, p1: np.float64, p2: np.float64, q1: int, q2: int
+    ) -> np.float64:
+        return (p1 * q1 + p2 * q2) / (q1 + q2)

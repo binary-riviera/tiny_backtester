@@ -13,7 +13,7 @@ class Order(NamedTuple):
     limit_price: float | None = None
 
 
-class ExecutedOrder(NamedTuple):
+class ExecutedOrder(NamedTuple):  # TODO: add id
     ticker: str
     type: OrderType
     quantity: int
