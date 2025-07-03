@@ -33,7 +33,10 @@ def get_test_market_data(ticker):
                 "high": [1.0, 2.0, 3.0],
                 "low": [1.0, 2.0, 3.0],
                 "close": [1.0, 2.0, 3.0],
-                "volume": 100,
+                "volume": [100, 100, 100],
+                "slippage": [0.1, 0.1, 0.1],
+                "midpoint": [1.0, 1.0, 1.0],
+                "spread": [0.1, 0.1, 0.1],
             }
         )
     }
@@ -129,7 +132,7 @@ def test_execute_order_sell_invalid():
 def test_execute_order_invalid_order_type():
     engine = Engine()
     strategy = get_test_strategy(set(), 1)
-    order = Order("TEST", "buy", 1)
+    order = Order("TEST", "foo", 1)  # type: ignore
     market_data = get_test_market_data("TEST")
     executed_order = engine.execute_order(strategy, order, cur_data=market_data)
     assert executed_order.status == "unsupported"

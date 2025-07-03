@@ -108,4 +108,4 @@ class Engine:
                 (latest["midpoint"] + 0.5 * latest["spread"]) * (1 - slippage_pct)
             )
         else:
-            raise BacktesterException(f"invalid order type {order.type}")
+            return np.float64(np.nan)  # why do I need to cast this????
