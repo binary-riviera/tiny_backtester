@@ -1,9 +1,8 @@
-from functools import cache
 from typing import Optional, Literal
 import pandas as pd
 import numpy as np
 
-from tiny_backtester.data_utils import load_timeseries
+from .data_utils import load_timeseries
 from .strategy import Strategy
 from .backtester_exception import BacktesterException
 from .backtester_types import MarketData, ExecutedOrder, Order, OrderStatus
@@ -12,63 +11,79 @@ from .backtester_types import MarketData, ExecutedOrder, Order, OrderStatus
 class Engine:
     # pricing parameters / options
     k: float = 0.5  # slippage sensitivity constant
-    spread_type: Literal["fixed", "rolling"] = (
-        "fixed"  # fixed or rolling spread calculations
-    )
+    spread_type: Literal["fixed", "rolling"] = "fixed"
     # class variables
     market_data: MarketData = {}
 
-    def load_timeseries(self, filepath: str, ticker: Optional[str] = None):
-        ticker, data = load_timeseries(filepath, ticker)
-        self.market_data[ticker] = data
-
-    def precalc(self):
-        """precalculate data needed for pricing"""
-        for df in self.market_data.values():
-            # TODO: future speed up: store calcs in numpy array associated with ticker instead of df
-            df["midpoint"] = (df["high"] + df["low"]) / 2
-            df["slippage"] = self.k / df["volume"]
-            if self.spread_type == "fixed":
-                # implementation of "A Simple Implicit Measure of the Effective Bid-Ask Spread in an Efficient Market [1984], Roll"
-                delta = np.diff(df["close"].to_numpy())
-                cov = np.cov(delta)
-                spread = 2 * np.sqrt(-cov) if cov < 0 else 0.0
-                df["spread"] = spread
-                # TODO: store spread as seperate attribute in market_data
-            elif self.spread_type == "rolling":
-                raise BacktesterException(
-                    "rolling spread calculation not implemented yet"
-                )
-
-    def run(self, strategy: Strategy, n_epochs: Optional[int] = None):
-        if not strategy.funds or strategy.funds <= 0:
+    def run(self, strat: Strategy, n_epochs: Optional[int] = None):
+        if not strat.funds or strat.funds <= 0:
             raise BacktesterException("strategy funds must be greater than 0")
         if not self.market_data or len(self.market_data) == 0:
             raise BacktesterException("must provide data for backtesting")
-        if not strategy.tickers or len(strategy.tickers) == 0:
+        if not strat.tickers or len(strat.tickers) == 0:
             raise BacktesterException("strategy must have tickers to run strategy on")
-        if not strategy.tickers.issubset(set(self.market_data.keys())):
+        if not strat.tickers.issubset(set(self.market_data.keys())):
             raise BacktesterException(
                 "data for tickers not found: "
-                + str(strategy.tickers - set(self.market_data.keys()))
+                + str(strat.tickers - set(self.market_data.keys()))
             )
-        self.precalc()
-        strategy.precalc(self.market_data)
-        min_data_length = min([len(self.market_data[t]) for t in strategy.tickers])
+        strat.precalc(self.market_data)
+        min_data_length = min([len(self.market_data[t]) for t in strat.tickers])
         n_epochs = min_data_length if not n_epochs else min(min_data_length, n_epochs)
         executed_orders: list[ExecutedOrder] = []
+        pos_info = {
+            t: self.get_position_df(df, n_epochs)
+            for t, df in self.market_data.items()
+            if t in strat.tickers
+        }
         for i in range(n_epochs + 1):
-            cur_data = {t: self.market_data[t].iloc[:i] for t in strategy.tickers}
-            if orders := strategy.run(cur_data):
-                executed_orders.extend(self.execute_orders(strategy, orders, cur_data))
+            cur_data = {t: self.market_data[t].iloc[:i] for t in strat.tickers}
+            if orders := strat.run(cur_data):
+                executed_orders.extend(
+                    self.execute_orders(strat, orders, cur_data, pos_info)
+                )
+
+    def load_timeseries(self, filepath: str, ticker: Optional[str] = None):
+        ticker, df = load_timeseries(filepath, ticker)
+        # precalculate data needed for pricing
+        # TODO: future speed up: store calcs in numpy array associated with ticker instead of df
+        df["midpoint"] = (df["high"] + df["low"]) / 2
+        df["slippage"] = self.k / df["volume"]
+        if self.spread_type == "fixed":
+            # implementation of "A Simple Implicit Measure of the Effective Bid-Ask Spread in an Efficient Market [1984], Roll"
+            delta = np.diff(df["close"].to_numpy())
+            cov = np.cov(delta)
+            spread = 2 * np.sqrt(-cov) if cov < 0 else 0.0
+            df["spread"] = spread
+            # TODO: store spread as seperate attribute in market_data
+        self.market_data[ticker] = df
+
+    def get_position_df(self, df: pd.DataFrame, n_epochs: int) -> pd.DataFrame:
+        pos_df = pd.DataFrame(index=df.iloc[:n_epochs].index)
+        pos_df["position_quantity"] = np.nan
+        pos_df["entry_price"] = np.nan
+        pos_df["fill_price"] = np.nan
+        pos_df["realised_pnl"] = np.nan
+        pos_df["unrealised_pnl"] = np.nan
+        return pos_df
 
     def execute_orders(
-        self, strategy: Strategy, orders: list[Order], cur_data: MarketData
+        self,
+        strat: Strategy,
+        orders: list[Order],
+        cur_data: MarketData,
+        pos_info: MarketData,
     ) -> list[ExecutedOrder]:
-        return [self.execute_order(strategy, order, cur_data) for order in orders]
+        return [
+            self.execute_order(strat, order, cur_data, pos_info) for order in orders
+        ]
 
     def execute_order(
-        self, strategy: Strategy, order: Order, cur_data: MarketData
+        self,
+        strat: Strategy,
+        order: Order,
+        cur_data: MarketData,
+        pos_info: MarketData,
     ) -> ExecutedOrder:
         # TODO: implement limit orders
         price = self.get_execution_price(order, cur_data[order.ticker])
@@ -80,20 +95,21 @@ class Engine:
 
         total_order_price = price * order.quantity
         if order.type == "buy":
-            if total_order_price > strategy.funds:
+            if total_order_price > strat.funds:
                 return make_executed_order("rejected")
-            strategy.funds -= total_order_price
-            strategy.portfolio[order.ticker] += order.quantity
+            strat.funds -= total_order_price
+            strat.portfolio[order.ticker] += order.quantity
             return make_executed_order("filled")
         elif order.type == "sell":
-            if strategy.portfolio[order.ticker] < order.quantity:
+            if strat.portfolio[order.ticker] < order.quantity:
                 return make_executed_order("rejected")
-            strategy.funds += total_order_price
-            strategy.portfolio[order.ticker] -= order.quantity
+            strat.funds += total_order_price
+            strat.portfolio[order.ticker] -= order.quantity
             return make_executed_order("filled")
         return make_executed_order("unsupported")
 
-    def get_execution_price(self, order: Order, ts: pd.DataFrame) -> np.float64:
+    @staticmethod
+    def get_execution_price(order: Order, ts: pd.DataFrame) -> np.float64:
         latest = ts.iloc[-1]
         slippage_pct = order.quantity * latest["slippage"]
         if order.type == "buy":
@@ -106,13 +122,8 @@ class Engine:
             )
         return np.float64(np.nan)  # why do I need to cast this????
 
-    def get_hypothetical_pnl(self, orders: list[ExecutedOrder]):
-        # pnl at given point
-        # = orders executed up to that point
-        # and then
-        pass
-
+    @staticmethod
     def get_average_entry_price(
-        self, p1: np.float64, p2: np.float64, q1: int, q2: int
+        p1: np.float64, p2: np.float64, q1: int, q2: int
     ) -> np.float64:
         return (p1 * q1 + p2 * q2) / (q1 + q2)

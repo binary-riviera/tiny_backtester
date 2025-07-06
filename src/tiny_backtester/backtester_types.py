@@ -2,8 +2,8 @@ from typing import Literal, NamedTuple
 from pandas import DataFrame
 
 OrderType = Literal["buy", "sell"]
-
 OrderStatus = Literal["filled", "rejected", "unsupported"]
+MarketData = dict[str, DataFrame]
 
 
 class Order(NamedTuple):
@@ -19,6 +19,3 @@ class ExecutedOrder(NamedTuple):  # TODO: add id
     quantity: int
     price: float
     status: OrderStatus
-
-
-MarketData = dict[str, DataFrame]

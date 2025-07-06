@@ -97,7 +97,9 @@ def test_execute_order_buy_valid():
     strategy = get_test_strategy(set(), 10000)
     order = Order("TEST", "buy", 1)
     market_data = get_test_market_data_precalc("TEST")
-    executed_order = engine.execute_order(strategy, order, cur_data=market_data)
+    executed_order = engine.execute_order(
+        strategy, order, cur_data=market_data, pos_info=market_data
+    )
     # assert executed_order.price == 1.0
     assert executed_order.quantity == 1
     assert executed_order.ticker == "TEST"
@@ -109,7 +111,9 @@ def test_execute_order_buy_invalid():
     strategy = get_test_strategy(set(), 1)
     order = Order("TEST", "buy", 100)
     market_data = get_test_market_data_precalc("TEST")
-    executed_order = engine.execute_order(strategy, order, cur_data=market_data)
+    executed_order = engine.execute_order(
+        strategy, order, cur_data=market_data, pos_info=market_data
+    )
     # assert executed_order.price == 1.0
     assert executed_order.quantity == 100
     assert executed_order.ticker == "TEST"
@@ -121,7 +125,9 @@ def test_execute_order_sell_valid():
     strategy = get_test_strategy(set(), 1, {"TEST": 20})
     order = Order("TEST", "sell", 10)
     market_data = get_test_market_data_precalc("TEST")
-    executed_order = engine.execute_order(strategy, order, cur_data=market_data)
+    executed_order = engine.execute_order(
+        strategy, order, cur_data=market_data, pos_info=market_data
+    )
     # assert executed_order.price == 1.0
     assert executed_order.quantity == 10
     assert executed_order.ticker == "TEST"
@@ -134,7 +140,9 @@ def test_execute_order_sell_invalid():
     strategy = get_test_strategy(set(), 1, {"TEST": 1})
     order = Order("TEST", "sell", 10)
     market_data = get_test_market_data_precalc("TEST")
-    executed_order = engine.execute_order(strategy, order, cur_data=market_data)
+    executed_order = engine.execute_order(
+        strategy, order, cur_data=market_data, pos_info=market_data
+    )
     # assert executed_order.price == 1.0
     assert executed_order.quantity == 10
     assert executed_order.ticker == "TEST"
@@ -147,17 +155,10 @@ def test_execute_order_invalid_order_type():
     strategy = get_test_strategy(set(), 1)
     order = Order("TEST", "foo", 1)  # type: ignore
     market_data = get_test_market_data_precalc("TEST")
-    executed_order = engine.execute_order(strategy, order, cur_data=market_data)
+    executed_order = engine.execute_order(
+        strategy, order, cur_data=market_data, pos_info=market_data
+    )
     assert executed_order.status == "unsupported"
-
-
-def test_precalc():
-    engine = Engine()
-    engine.market_data = get_test_market_data("TEST")
-    engine.precalc()
-    assert "midpoint" in engine.market_data["TEST"]
-    assert "slippage" in engine.market_data["TEST"]
-    assert "spread" in engine.market_data["TEST"]
 
 
 def test_get_average_entry_price():
