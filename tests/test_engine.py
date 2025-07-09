@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from tiny_backtester.backtester_exception import BacktesterException
-from tiny_backtester.backtester_types import Order
+from tiny_backtester.backtester_types import ExecutedOrder, Order, Position
 from tiny_backtester.engine import Engine
 import pytest
 
@@ -97,9 +97,7 @@ def test_execute_order_buy_valid():
     strategy = get_test_strategy(set(), 10000)
     order = Order("TEST", "buy", 1)
     market_data = get_test_market_data_precalc("TEST")
-    executed_order = engine.execute_order(
-        strategy, order, cur_data=market_data, pos_info=market_data
-    )
+    executed_order = engine.execute_order(strategy, order, cur_data=market_data)
     # assert executed_order.price == 1.0
     assert executed_order.quantity == 1
     assert executed_order.ticker == "TEST"
@@ -111,9 +109,7 @@ def test_execute_order_buy_invalid():
     strategy = get_test_strategy(set(), 1)
     order = Order("TEST", "buy", 100)
     market_data = get_test_market_data_precalc("TEST")
-    executed_order = engine.execute_order(
-        strategy, order, cur_data=market_data, pos_info=market_data
-    )
+    executed_order = engine.execute_order(strategy, order, cur_data=market_data)
     # assert executed_order.price == 1.0
     assert executed_order.quantity == 100
     assert executed_order.ticker == "TEST"
@@ -125,9 +121,7 @@ def test_execute_order_sell_valid():
     strategy = get_test_strategy(set(), 1, {"TEST": 20})
     order = Order("TEST", "sell", 10)
     market_data = get_test_market_data_precalc("TEST")
-    executed_order = engine.execute_order(
-        strategy, order, cur_data=market_data, pos_info=market_data
-    )
+    executed_order = engine.execute_order(strategy, order, cur_data=market_data)
     # assert executed_order.price == 1.0
     assert executed_order.quantity == 10
     assert executed_order.ticker == "TEST"
@@ -140,9 +134,7 @@ def test_execute_order_sell_invalid():
     strategy = get_test_strategy(set(), 1, {"TEST": 1})
     order = Order("TEST", "sell", 10)
     market_data = get_test_market_data_precalc("TEST")
-    executed_order = engine.execute_order(
-        strategy, order, cur_data=market_data, pos_info=market_data
-    )
+    executed_order = engine.execute_order(strategy, order, cur_data=market_data)
     # assert executed_order.price == 1.0
     assert executed_order.quantity == 10
     assert executed_order.ticker == "TEST"
@@ -155,9 +147,7 @@ def test_execute_order_invalid_order_type():
     strategy = get_test_strategy(set(), 1)
     order = Order("TEST", "foo", 1)  # type: ignore
     market_data = get_test_market_data_precalc("TEST")
-    executed_order = engine.execute_order(
-        strategy, order, cur_data=market_data, pos_info=market_data
-    )
+    executed_order = engine.execute_order(strategy, order, cur_data=market_data)
     assert executed_order.status == "unsupported"
 
 
@@ -174,3 +164,25 @@ def test_get_average_entry_price():
     q2 = 100
     p2 = np.float64(5.0)
     assert Engine().get_average_entry_price(p1, p2, q1, q2).round(2) == 5.45
+
+
+def test_get_position_default():
+    last_pos = Position()
+    order = ExecutedOrder(
+        last_pos.time + pd.Timedelta(1), "TEST", "buy", 10, np.float64(1.0), "filled"
+    )
+    pos = Engine.get_position(last_pos, order)
+    assert pos.quantity == 10
+    assert pos.entry_price == 1.0
+    assert pos.fill_price == 1.0
+
+
+def test_get_position():
+    last_pos = Position(pd.Timestamp.min, 10, np.float64(10.0), np.float64(8.0))
+    order = ExecutedOrder(
+        last_pos.time + pd.Timedelta(1), "TEST", "buy", 5, np.float64(15.0), "filled"
+    )
+    pos = Engine.get_position(last_pos, order)
+    assert pos.quantity == 15
+    assert np.round(pos.entry_price, 2) == 11.67
+    assert pos.fill_price == 15.0

@@ -5,7 +5,13 @@ import numpy as np
 from .data_utils import load_timeseries
 from .strategy import Strategy
 from .backtester_exception import BacktesterException
-from .backtester_types import MarketData, ExecutedOrder, Order, OrderStatus
+from .backtester_types import (
+    MarketData,
+    ExecutedOrder,
+    Order,
+    OrderStatus,
+    Position,
+)
 
 
 class Engine:
@@ -31,17 +37,12 @@ class Engine:
         min_data_length = min([len(self.market_data[t]) for t in strat.tickers])
         n_epochs = min_data_length if not n_epochs else min(min_data_length, n_epochs)
         executed_orders: list[ExecutedOrder] = []
-        pos_info = {
-            t: self.get_position_df(df, n_epochs)
-            for t, df in self.market_data.items()
-            if t in strat.tickers
-        }
+        pos_info = {t: [Position()] for t in strat.tickers}
         for i in range(n_epochs + 1):
             cur_data = {t: self.market_data[t].iloc[:i] for t in strat.tickers}
             if orders := strat.run(cur_data):
-                executed_orders.extend(
-                    self.execute_orders(strat, orders, cur_data, pos_info)
-                )
+                executed_orders = self.execute_orders(strat, orders, cur_data)
+                executed_orders.extend(executed_orders)
 
     def load_timeseries(self, filepath: str, ticker: Optional[str] = None):
         ticker, df = load_timeseries(filepath, ticker)
@@ -58,39 +59,29 @@ class Engine:
             # TODO: store spread as seperate attribute in market_data
         self.market_data[ticker] = df
 
-    def get_position_df(self, df: pd.DataFrame, n_epochs: int) -> pd.DataFrame:
-        pos_df = pd.DataFrame(index=df.iloc[:n_epochs].index)
-        pos_df["position_quantity"] = np.nan
-        pos_df["entry_price"] = np.nan
-        pos_df["fill_price"] = np.nan
-        pos_df["realised_pnl"] = np.nan
-        pos_df["unrealised_pnl"] = np.nan
-        return pos_df
-
+    @classmethod
     def execute_orders(
-        self,
+        cls,
         strat: Strategy,
         orders: list[Order],
         cur_data: MarketData,
-        pos_info: MarketData,
     ) -> list[ExecutedOrder]:
-        return [
-            self.execute_order(strat, order, cur_data, pos_info) for order in orders
-        ]
+        return [cls.execute_order(strat, order, cur_data) for order in orders]
 
+    @classmethod
     def execute_order(
-        self,
+        cls,
         strat: Strategy,
         order: Order,
         cur_data: MarketData,
-        pos_info: MarketData,
     ) -> ExecutedOrder:
         # TODO: implement limit orders
-        price = self.get_execution_price(order, cur_data[order.ticker])
+        latest = cur_data[order.ticker].iloc[-1]
+        price = cls.get_execution_price(order, latest)
 
         def make_executed_order(status: OrderStatus) -> ExecutedOrder:
             return ExecutedOrder(
-                order.ticker, order.type, order.quantity, price, status
+                latest.index, order.ticker, order.type, order.quantity, price, status  # type: ignore
             )
 
         total_order_price = price * order.quantity
@@ -108,19 +99,41 @@ class Engine:
             return make_executed_order("filled")
         return make_executed_order("unsupported")
 
+    @classmethod
+    def get_position(cls, last_pos: Position, order: ExecutedOrder) -> Position:
+        quantity_change = order.quantity if order.type == "buy" else -order.quantity
+        new_quantity = last_pos.quantity + quantity_change
+        entry_price: np.float64
+        if order.type == "buy":
+            entry_price = cls.get_average_entry_price(
+                last_pos.entry_price, order.price, last_pos.quantity, order.quantity
+            )
+        elif new_quantity == 0:
+            entry_price = np.float64(0)
+        else:
+            entry_price = last_pos.entry_price
+
+        return Position(
+            order.time,
+            new_quantity,
+            entry_price,
+            order.price,
+            np.float64(0.0),
+            np.float64(0.0),
+        )
+
     @staticmethod
-    def get_execution_price(order: Order, ts: pd.DataFrame) -> np.float64:
-        latest = ts.iloc[-1]
-        slippage_pct = order.quantity * latest["slippage"]
+    def get_execution_price(order: Order, row: pd.Series) -> np.float64:
+        slippage_pct = order.quantity * row["slippage"]
         if order.type == "buy":
             return np.float64(
-                (latest["midpoint"] + 0.5 * latest["spread"]) * (1 + slippage_pct)
+                (row["midpoint"] + 0.5 * row["spread"]) * (1 + slippage_pct)
             )
         elif order.type == "sell":
             return np.float64(
-                (latest["midpoint"] + 0.5 * latest["spread"]) * (1 - slippage_pct)
+                (row["midpoint"] + 0.5 * row["spread"]) * (1 - slippage_pct)
             )
-        return np.float64(np.nan)  # why do I need to cast this????
+        return np.float64(np.nan)  # FIXME: why do I need to cast this????
 
     @staticmethod
     def get_average_entry_price(
