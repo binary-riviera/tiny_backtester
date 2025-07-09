@@ -41,8 +41,13 @@ class Engine:
         for i in range(n_epochs + 1):
             cur_data = {t: self.market_data[t].iloc[:i] for t in strat.tickers}
             if orders := strat.run(cur_data):
-                executed_orders = self.execute_orders(strat, orders, cur_data)
-                executed_orders.extend(executed_orders)
+                orders = self.execute_orders(strat, orders, cur_data)
+                for o in orders:
+                    if o.status == "filled":
+                        pos_info[o.ticker].append(
+                            self.get_position(pos_info[o.ticker][-1], o)
+                        )
+                executed_orders.extend(orders)
 
     def load_timeseries(self, filepath: str, ticker: Optional[str] = None):
         ticker, df = load_timeseries(filepath, ticker)
@@ -102,24 +107,24 @@ class Engine:
     @classmethod
     def get_position(cls, last_pos: Position, order: ExecutedOrder) -> Position:
         quantity_change = order.quantity if order.type == "buy" else -order.quantity
-        new_quantity = last_pos.quantity + quantity_change
-        entry_price: np.float64
+        quantity = last_pos.quantity + quantity_change
+        entry_price = np.float64(0)
+        realised_pnl = np.float64(last_pos.realised_pnl)
         if order.type == "buy":
             entry_price = cls.get_average_entry_price(
                 last_pos.entry_price, order.price, last_pos.quantity, order.quantity
             )
-        elif new_quantity == 0:
-            entry_price = np.float64(0)
-        else:
-            entry_price = last_pos.entry_price
+        elif order.type == "sell":
+            entry_price = np.float64(0) if quantity == 0 else last_pos.entry_price
+            realised_pnl += (order.price - last_pos.entry_price) * order.quantity
 
         return Position(
             order.time,
-            new_quantity,
+            quantity,
             entry_price,
             order.price,
             np.float64(0.0),
-            np.float64(0.0),
+            realised_pnl,
         )
 
     @staticmethod

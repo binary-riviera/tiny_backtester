@@ -175,6 +175,7 @@ def test_get_position_default():
     assert pos.quantity == 10
     assert pos.entry_price == 1.0
     assert pos.fill_price == 1.0
+    assert pos.realised_pnl == 0.0
 
 
 def test_get_position():
@@ -186,3 +187,28 @@ def test_get_position():
     assert pos.quantity == 15
     assert np.round(pos.entry_price, 2) == 11.67
     assert pos.fill_price == 15.0
+    assert pos.realised_pnl == 0.0
+
+
+def test_get_position_sell():
+    last_pos = Position(pd.Timestamp.min, 10, np.float64(10.0), np.float64(8.0))
+    order = ExecutedOrder(
+        last_pos.time + pd.Timedelta(1), "TEST", "sell", 5, np.float64(15.0), "filled"
+    )
+    pos = Engine.get_position(last_pos, order)
+    assert pos.quantity == 5
+    assert pos.entry_price == 10.0
+    assert pos.fill_price == 15.0
+    assert pos.realised_pnl == 25.0
+
+
+def test_get_position_sell_reset_entry_price():
+    last_pos = Position(pd.Timestamp.min, 10, np.float64(10.0), np.float64(8.0))
+    order = ExecutedOrder(
+        last_pos.time + pd.Timedelta(1), "TEST", "sell", 10, np.float64(15.0), "filled"
+    )
+    pos = Engine.get_position(last_pos, order)
+    assert pos.quantity == 0
+    assert pos.entry_price == 0.0
+    assert pos.fill_price == 15.0
+    assert pos.realised_pnl == 50.0
