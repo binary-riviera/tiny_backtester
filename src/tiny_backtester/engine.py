@@ -22,7 +22,7 @@ class Engine:
     # class variables
     market_data: MarketData = {}
 
-    def run(self, strat: Strategy, n_epochs: Optional[int] = None):
+    def run(self, strat: Strategy, n_epochs: Optional[int] = None) -> dict:
         if not strat.funds or strat.funds <= 0:
             raise BacktesterException("strategy funds must be greater than 0")
         if not self.market_data or len(self.market_data) == 0:
@@ -51,6 +51,11 @@ class Engine:
                             )
                         )
                 executed_orders.extend(orders)
+
+        return {
+            "orders": pd.DataFrame(data=executed_orders),
+            "positions": {t: pd.DataFrame(data=d) for t, d in pos_info},
+        }
 
     def load_timeseries(self, filepath: str, ticker: Optional[str] = None):
         ticker, df = load_timeseries(filepath, ticker)
