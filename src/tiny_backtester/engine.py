@@ -10,6 +10,7 @@ from .backtester_types import (
     ExecutedOrder,
     Order,
     OrderStatus,
+    OrderType,
     Position,
 )
 
@@ -45,7 +46,9 @@ class Engine:
                 for o in orders:
                     if o.status == "filled":
                         pos_info[o.ticker].append(
-                            self.get_position(pos_info[o.ticker][-1], o)
+                            self.get_position(
+                                pos_info[o.ticker][-1], o, cur_data[o.ticker].iloc[-1]
+                            )
                         )
                 executed_orders.extend(orders)
 
@@ -82,7 +85,7 @@ class Engine:
     ) -> ExecutedOrder:
         # TODO: implement limit orders
         latest = cur_data[order.ticker].iloc[-1]
-        price = cls.get_execution_price(order, latest)
+        price = cls.get_execution_price(order.quantity, order.type, latest)
 
         def make_executed_order(status: OrderStatus) -> ExecutedOrder:
             return ExecutedOrder(
@@ -105,11 +108,14 @@ class Engine:
         return make_executed_order("unsupported")
 
     @classmethod
-    def get_position(cls, last_pos: Position, order: ExecutedOrder) -> Position:
+    def get_position(
+        cls, last_pos: Position, order: ExecutedOrder, latest: pd.Series
+    ) -> Position:
         quantity_change = order.quantity if order.type == "buy" else -order.quantity
         quantity = last_pos.quantity + quantity_change
         entry_price = np.float64(0)
         realised_pnl = np.float64(last_pos.realised_pnl)
+        unrealised_pnl = cls.get_execution_price(quantity, "sell", latest)
         if order.type == "buy":
             entry_price = cls.get_average_entry_price(
                 last_pos.entry_price, order.price, last_pos.quantity, order.quantity
@@ -123,18 +129,20 @@ class Engine:
             quantity,
             entry_price,
             order.price,
-            np.float64(0.0),
+            unrealised_pnl,
             realised_pnl,
         )
 
     @staticmethod
-    def get_execution_price(order: Order, row: pd.Series) -> np.float64:
-        slippage_pct = order.quantity * row["slippage"]
-        if order.type == "buy":
+    def get_execution_price(
+        quantity: int, type: OrderType, row: pd.Series
+    ) -> np.float64:
+        slippage_pct = quantity * row["slippage"]
+        if type == "buy":
             return np.float64(
                 (row["midpoint"] + 0.5 * row["spread"]) * (1 + slippage_pct)
             )
-        elif order.type == "sell":
+        elif type == "sell":
             return np.float64(
                 (row["midpoint"] + 0.5 * row["spread"]) * (1 - slippage_pct)
             )

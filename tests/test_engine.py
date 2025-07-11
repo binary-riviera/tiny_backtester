@@ -55,6 +55,20 @@ def get_test_market_data(ticker):
     }
 
 
+def get_latest_df():
+    return pd.DataFrame(
+        data={
+            "open": [0.5],
+            "high": [1.0],
+            "low": [0.5],
+            "close": [1.0],
+            "slippage": [0.001],
+            "midpoint": [0.75],
+            "spread": [0.01],
+        }
+    ).iloc[0]
+
+
 def test_run_no_funds():
     engine = Engine()
     strategy = get_test_strategy(set(), 0)
@@ -171,11 +185,12 @@ def test_get_position_default():
     order = ExecutedOrder(
         last_pos.time + pd.Timedelta(1), "TEST", "buy", 10, np.float64(1.0), "filled"
     )
-    pos = Engine.get_position(last_pos, order)
+    pos = Engine.get_position(last_pos, order, get_latest_df())
     assert pos.quantity == 10
     assert pos.entry_price == 1.0
     assert pos.fill_price == 1.0
     assert pos.realised_pnl == 0.0
+    assert pos.unrealised_pnl != 0.0
 
 
 def test_get_position():
@@ -183,11 +198,12 @@ def test_get_position():
     order = ExecutedOrder(
         last_pos.time + pd.Timedelta(1), "TEST", "buy", 5, np.float64(15.0), "filled"
     )
-    pos = Engine.get_position(last_pos, order)
+    pos = Engine.get_position(last_pos, order, get_latest_df())
     assert pos.quantity == 15
     assert np.round(pos.entry_price, 2) == 11.67
     assert pos.fill_price == 15.0
     assert pos.realised_pnl == 0.0
+    assert pos.unrealised_pnl != 0.0
 
 
 def test_get_position_sell():
@@ -195,11 +211,12 @@ def test_get_position_sell():
     order = ExecutedOrder(
         last_pos.time + pd.Timedelta(1), "TEST", "sell", 5, np.float64(15.0), "filled"
     )
-    pos = Engine.get_position(last_pos, order)
+    pos = Engine.get_position(last_pos, order, get_latest_df())
     assert pos.quantity == 5
     assert pos.entry_price == 10.0
     assert pos.fill_price == 15.0
     assert pos.realised_pnl == 25.0
+    assert pos.unrealised_pnl != 0.0
 
 
 def test_get_position_sell_reset_entry_price():
@@ -207,8 +224,9 @@ def test_get_position_sell_reset_entry_price():
     order = ExecutedOrder(
         last_pos.time + pd.Timedelta(1), "TEST", "sell", 10, np.float64(15.0), "filled"
     )
-    pos = Engine.get_position(last_pos, order)
+    pos = Engine.get_position(last_pos, order, get_latest_df())
     assert pos.quantity == 0
     assert pos.entry_price == 0.0
     assert pos.fill_price == 15.0
     assert pos.realised_pnl == 50.0
+    assert pos.unrealised_pnl != 0.0
