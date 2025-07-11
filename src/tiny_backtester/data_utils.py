@@ -9,23 +9,23 @@ from tiny_backtester.constants import MANDATORY_DF_COLUMNS
 
 
 def load_timeseries(
-    data_source: str | pd.DataFrame, ticker: Optional[str], check_datetime_spacing=True
+    source: str | pd.DataFrame, ticker: Optional[str], check_datetime_spacing=True
 ) -> tuple[str, pd.DataFrame]:
-    if type(data_source) is str:
-        ticker = ticker or Path(data_source).stem
-        data_source = pd.read_csv(data_source, engine="c", index_col="datetime")
-        data_source.index = pd.to_datetime(data_source.index)
-    elif type(data_source) is pd.DataFrame:
+    if type(source) is str:
+        ticker = ticker or Path(source).stem
+        source = pd.read_csv(source, engine="c", index_col="datetime")
+        source.index = pd.to_datetime(source.index)
+    elif type(source) is pd.DataFrame:
         if not ticker:
             raise BacktesterException("ticker must be provided for DataFrame data")
     else:
         raise BacktesterException("data_source must be filepath or DataFrame")
     # TODO: verify index
-    if missing_cols := MANDATORY_DF_COLUMNS - set(data_source.columns):
+    if missing_cols := MANDATORY_DF_COLUMNS - set(source.columns):
         raise BacktesterException(f"missing columns: {missing_cols}")
-    if check_datetime_spacing and not is_regularly_spaced(data_source):
+    if check_datetime_spacing and not is_regularly_spaced(source):
         raise BacktesterException("time series is irregular")
-    return (ticker, data_source)
+    return (ticker, source)
 
 
 def is_regularly_spaced(df: pd.DataFrame) -> np.bool:

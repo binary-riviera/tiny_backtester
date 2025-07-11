@@ -31,8 +31,7 @@ class Engine:
             raise BacktesterException("strategy must have tickers to run strategy on")
         if not strat.tickers.issubset(set(self.market_data.keys())):
             raise BacktesterException(
-                "data for tickers not found: "
-                + str(strat.tickers - set(self.market_data.keys()))
+                "data for tickers not found: " + str(strat.tickers - set(self.market_data.keys()))
             )
         strat.precalc(self.market_data)
         min_data_length = min([len(self.market_data[t]) for t in strat.tickers])
@@ -113,9 +112,7 @@ class Engine:
         return make_executed_order("unsupported")
 
     @classmethod
-    def get_position(
-        cls, last_pos: Position, order: ExecutedOrder, latest: pd.Series
-    ) -> Position:
+    def get_position(cls, last_pos: Position, order: ExecutedOrder, latest: pd.Series) -> Position:
         quantity_change = order.quantity if order.type == "buy" else -order.quantity
         quantity = last_pos.quantity + quantity_change
         entry_price = np.float64(0)
@@ -139,22 +136,14 @@ class Engine:
         )
 
     @staticmethod
-    def get_execution_price(
-        quantity: int, type: OrderType, row: pd.Series
-    ) -> np.float64:
+    def get_execution_price(quantity: int, type: OrderType, row: pd.Series) -> np.float64:
         slippage_pct = quantity * row["slippage"]
         if type == "buy":
-            return np.float64(
-                (row["midpoint"] + 0.5 * row["spread"]) * (1 + slippage_pct)
-            )
+            return np.float64((row["midpoint"] + 0.5 * row["spread"]) * (1 + slippage_pct))
         elif type == "sell":
-            return np.float64(
-                (row["midpoint"] + 0.5 * row["spread"]) * (1 - slippage_pct)
-            )
+            return np.float64((row["midpoint"] + 0.5 * row["spread"]) * (1 - slippage_pct))
         return np.float64(np.nan)  # FIXME: why do I need to cast this????
 
     @staticmethod
-    def get_average_entry_price(
-        p1: np.float64, p2: np.float64, q1: int, q2: int
-    ) -> np.float64:
+    def get_average_entry_price(p1: np.float64, p2: np.float64, q1: int, q2: int) -> np.float64:
         return (p1 * q1 + p2 * q2) / (q1 + q2)

@@ -11,7 +11,6 @@ class Strategy(ABC):
     tickers: set[str]
     portfolio: dict[str, int] = defaultdict(int)
     funds = float64(DEFAULT_FUNDS)
-    _counters = {}
 
     @abstractmethod
     def precalc(self, data: MarketData) -> None:
