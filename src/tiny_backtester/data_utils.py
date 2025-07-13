@@ -9,7 +9,7 @@ from tiny_backtester.constants import MANDATORY_DF_COLUMNS
 
 
 def load_timeseries(
-    source: str | pd.DataFrame, ticker: Optional[str], check_datetime_spacing=True
+    source: str | pd.DataFrame, ticker: Optional[str] = None, check_datetime_spacing=False
 ) -> tuple[str, pd.DataFrame]:
     if type(source) is str:
         ticker = ticker or Path(source).stem
@@ -21,6 +21,7 @@ def load_timeseries(
     else:
         raise BacktesterException("data_source must be filepath or DataFrame")
     # TODO: verify index
+    source.columns = source.columns.str.lower()
     if missing_cols := MANDATORY_DF_COLUMNS - set(source.columns):
         raise BacktesterException(f"missing columns: {missing_cols}")
     if check_datetime_spacing and not is_regularly_spaced(source):

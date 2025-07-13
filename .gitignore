@@ -4,3 +4,5 @@ settings.json
 .coverage
 notebooks
 notes.txt
+examples/data
+.DS_store

@@ -38,7 +38,7 @@ class Engine:
         n_epochs = min_data_length if not n_epochs else min(min_data_length, n_epochs)
         executed_orders: list[ExecutedOrder] = []
         pos_info = {t: [Position()] for t in strat.tickers}
-        for i in range(n_epochs + 1):
+        for i in range(1, n_epochs + 1):
             cur_data = {t: self.market_data[t].iloc[:i] for t in strat.tickers}
             if orders := strat.run(cur_data):
                 orders = self.execute_orders(strat, orders, cur_data)
@@ -53,7 +53,7 @@ class Engine:
 
         return {
             "orders": pd.DataFrame(data=executed_orders),
-            "positions": {t: pd.DataFrame(data=d) for t, d in pos_info},
+            "positions": {t: pd.DataFrame(data=d) for t, d in pos_info.items()},
         }
 
     def load_timeseries(self, filepath: str, ticker: Optional[str] = None):

@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 import pytest
 from tiny_backtester.backtester_exception import BacktesterException
+from unittest.mock import patch
 from tiny_backtester.data_utils import (
     is_regularly_spaced,
     load_timeseries,
@@ -40,9 +41,7 @@ def test_load_timeseries_dataframe_missing_cols():
 
 
 def test_load_timeseries_wrong_data_source_type():
-    with pytest.raises(
-        BacktesterException, match="data_source must be filepath or DataFrame"
-    ):
+    with pytest.raises(BacktesterException, match="data_source must be filepath or DataFrame"):
         load_timeseries(1.0, "TEST")  # type: ignore
 
 
@@ -59,6 +58,37 @@ def test_load_timeseries_is_irregular():
     )
     with pytest.raises(BacktesterException, match="time series is irregular"):
         load_timeseries(invalid_df, "TEST", check_datetime_spacing=True)
+
+
+def test_load_timeseries_no_ticker():
+    valid_df = pd.DataFrame(
+        {
+            "datetime": pd.date_range("1/1/2000", periods=5, freq="min"),
+            "open": [1, 2, 3, 4, 5],
+            "high": [1, 2, 3, 4, 5],
+            "low": [1, 2, 3, 4, 5],
+            "close": [1, 2, 3, 4, 5],
+        }
+    )
+    with pytest.raises(BacktesterException, match="ticker must be provided for DataFrame data"):
+        load_timeseries(valid_df)
+
+
+def test_load_timeseries_csv():
+    valid_df = pd.DataFrame(
+        {
+            "datetime": pd.date_range("1/1/2000", periods=5, freq="min"),
+            "open": [1, 2, 3, 4, 5],
+            "high": [1, 2, 3, 4, 5],
+            "low": [1, 2, 3, 4, 5],
+            "close": [1, 2, 3, 4, 5],
+        }
+    )
+    with patch("pandas.read_csv") as mock_method:
+        mock_method.return_value = valid_df
+        (ticker, _) = load_timeseries("test.csv")
+        assert ticker == "test"
+    mock_method.assert_called_once_with("test.csv", engine="c", index_col="datetime")
 
 
 def test_is_regularly_spaced_true():
