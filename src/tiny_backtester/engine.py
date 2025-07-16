@@ -1,11 +1,11 @@
-from typing import Optional, Literal
+from typing import Optional
 import pandas as pd
 import numpy as np
 
-from .data_utils import load_timeseries
-from .strategy import Strategy
-from .backtester_exception import BacktesterException
-from .backtester_types import (
+from tiny_backtester.data_utils import load_timeseries
+from tiny_backtester.strategy import Strategy
+from tiny_backtester.backtester_exception import BacktesterException
+from tiny_backtester.backtester_types import (
     MarketData,
     ExecutedOrder,
     Order,
@@ -18,9 +18,9 @@ from .backtester_types import (
 class Engine:
     # pricing parameters / options
     k: float = 0.5  # slippage sensitivity constant
-    spread_type: Literal["fixed", "rolling"] = "fixed"
-    # class variables
-    market_data: MarketData = {}
+
+    def __init__(self):
+        self.market_data = {}
 
     def run(self, strat: Strategy, n_epochs: Optional[int] = None) -> dict:
         if not strat.funds or strat.funds <= 0:
@@ -62,13 +62,12 @@ class Engine:
         # TODO: future speed up: store calcs in numpy array associated with ticker instead of df
         df["midpoint"] = (df["high"] + df["low"]) / 2
         df["slippage"] = self.k / df["volume"]
-        if self.spread_type == "fixed":
-            # implementation of "A Simple Implicit Measure of the Effective Bid-Ask Spread in an Efficient Market [1984], Roll"
-            delta = np.diff(df["close"].to_numpy())
-            cov = np.cov(delta)
-            spread = 2 * np.sqrt(-cov) if cov < 0 else 0.0
-            df["spread"] = spread
-            # TODO: store spread as seperate attribute in market_data
+        # implementation of "A Simple Implicit Measure of the Effective Bid-Ask Spread in an Efficient Market [1984], Roll"
+        delta = np.diff(df["close"].to_numpy())
+        cov = np.cov(delta)
+        spread = 2 * np.sqrt(-cov) if cov < 0 else 0.0
+        df["spread"] = spread
+        # TODO: store spread as seperate attribute in market_data
         self.market_data[ticker] = df
 
     @classmethod

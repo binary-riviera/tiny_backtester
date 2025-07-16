@@ -1,3 +1,4 @@
+from unittest.mock import patch
 import pandas as pd
 import numpy as np
 from tiny_backtester.backtester_exception import BacktesterException
@@ -42,19 +43,6 @@ def get_test_market_data_precalc(ticker):
     }
 
 
-def get_test_market_data(ticker):
-    return {
-        ticker: pd.DataFrame(
-            data={
-                "high": [1.0, 2.0, 3.0, 4.0],
-                "low": [1.0, 2.0, 3.0, 4.0],
-                "close": [1.0, 2.0, 3.0, 4.0],
-                "volume": [100, 100, 100, 100],
-            }
-        )
-    }
-
-
 def get_latest_df():
     return pd.DataFrame(
         data={
@@ -72,9 +60,7 @@ def get_latest_df():
 def test_run_no_funds():
     engine = Engine()
     strategy = get_test_strategy(set(), 0)
-    with pytest.raises(
-        BacktesterException, match="strategy funds must be greater than 0"
-    ):
+    with pytest.raises(BacktesterException, match="strategy funds must be greater than 0"):
         engine.run(strategy)
 
 
@@ -90,9 +76,7 @@ def test_run_no_tickers():
     engine = Engine()
     engine.market_data = {"test": pd.DataFrame()}
     strategy = get_test_strategy(set(), 10000)
-    with pytest.raises(
-        BacktesterException, match="strategy must have tickers to run strategy on"
-    ):
+    with pytest.raises(BacktesterException, match="strategy must have tickers to run strategy on"):
         engine.run(strategy)
 
 
@@ -100,9 +84,7 @@ def test_run_ticker_data_not_found():
     engine = Engine()
     engine.market_data = {"test": pd.DataFrame()}
     strategy = get_test_strategy({"invalid_ticker"}, 10000)
-    with pytest.raises(
-        BacktesterException, match="data for tickers not found: {'invalid_ticker'}"
-    ):
+    with pytest.raises(BacktesterException, match="data for tickers not found: {'invalid_ticker'}"):
         engine.run(strategy)
 
 
@@ -230,3 +212,22 @@ def test_get_position_sell_reset_entry_price():
     assert pos.fill_price == 15.0
     assert pos.realised_pnl == 50.0
     assert pos.unrealised_pnl != 0.0
+
+
+def test_load_timeseries():
+    engine = Engine()
+    valid_df = pd.DataFrame(
+        data={
+            "high": [1.0, 2.0, 3.0, 4.0],
+            "low": [1.0, 2.0, 3.0, 4.0],
+            "close": [1.0, 2.0, 3.0, 4.0],
+            "volume": [100, 100, 100, 100],
+        }
+    )
+    with patch("tiny_backtester.engine.load_timeseries") as mock_method:
+        mock_method.return_value = ("TEST", valid_df)
+        engine.load_timeseries("test.csv", "TEST")
+        assert "TEST" in engine.market_data
+        assert "midpoint" in engine.market_data["TEST"].columns
+        assert "slippage" in engine.market_data["TEST"].columns
+        assert "spread" in engine.market_data["TEST"].columns
