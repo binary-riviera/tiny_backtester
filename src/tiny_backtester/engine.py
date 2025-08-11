@@ -34,12 +34,12 @@ class Engine:
                 "data for tickers not found: " + str(strat.tickers - set(self.market_data.keys()))
             )
         strat.precalc(self.market_data)
-        min_data_length = min([len(self.market_data[t]) for t in strat.tickers])
+        min_data_length = min(len(self.market_data[t]) for t in strat.tickers)
         n_epochs = min_data_length if not n_epochs else min(min_data_length, n_epochs)
-        executed_orders: list[ExecutedOrder] = []
+        order_log: list[ExecutedOrder] = []
         pos_info = {t: [Position()] for t in strat.tickers}
         for i in range(1, n_epochs + 1):
-            cur_data = {t: self.market_data[t].iloc[:i].copy(deep=False) for t in strat.tickers}
+            cur_data = {t: self.market_data[t].iloc[:i] for t in strat.tickers}
             if orders := strat.run(cur_data):
                 executed_orders = self.execute_orders(strat, orders, cur_data)
                 for o in executed_orders:
@@ -49,10 +49,10 @@ class Engine:
                                 pos_info[o.ticker][-1], o, cur_data[o.ticker].iloc[-1]
                             )
                         )
-                executed_orders.extend(executed_orders)
+                order_log.extend(executed_orders)
 
         return {
-            "orders": pd.DataFrame(data=executed_orders),
+            "orders": pd.DataFrame(data=order_log),
             "positions": {t: pd.DataFrame(data=d) for t, d in pos_info.items()},
         }
 
