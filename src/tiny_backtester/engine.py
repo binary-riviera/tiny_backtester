@@ -41,15 +41,15 @@ class Engine:
         for i in range(1, n_epochs + 1):
             cur_data = {t: self.market_data[t].iloc[:i].copy(deep=False) for t in strat.tickers}
             if orders := strat.run(cur_data):
-                orders = self.execute_orders(strat, orders, cur_data)
-                for o in orders:
+                executed_orders = self.execute_orders(strat, orders, cur_data)
+                for o in executed_orders:
                     if o.status == "filled":
                         pos_info[o.ticker].append(
                             self.get_position(
                                 pos_info[o.ticker][-1], o, cur_data[o.ticker].iloc[-1]
                             )
                         )
-                executed_orders.extend(orders)
+                executed_orders.extend(executed_orders)
 
         return {
             "orders": pd.DataFrame(data=executed_orders),
