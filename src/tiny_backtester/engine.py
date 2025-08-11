@@ -141,7 +141,7 @@ class Engine:
             return np.float64((row["midpoint"] + 0.5 * row["spread"]) * (1 + slippage_pct))
         elif type == "sell":
             return np.float64((row["midpoint"] + 0.5 * row["spread"]) * (1 - slippage_pct))
-        return np.float64(np.nan)  # FIXME: why do I need to cast this????
+        return np.nan
 
     @staticmethod
     def get_average_entry_price(p1: np.float64, p2: np.float64, q1: int, q2: int) -> np.float64:
