@@ -34,6 +34,9 @@ def is_regularly_spaced(df: pd.DataFrame) -> np.bool:
     return np.all(diff == diff[0])
 
 
+# .TODO: this entire function is unfit for purpose, rewrite to use pandas_market_calendars
+
+
 def resample_market_data(
     market_data: MarketData, resample: Literal["upsample", "downsample"]
 ) -> MarketData:

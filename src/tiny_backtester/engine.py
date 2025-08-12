@@ -72,20 +72,12 @@ class Engine:
 
     @classmethod
     def execute_orders(
-        cls,
-        strat: Strategy,
-        orders: list[Order],
-        cur_data: MarketData,
+        cls, strat: Strategy, orders: list[Order], cur_data: MarketData
     ) -> list[ExecutedOrder]:
         return [cls.execute_order(strat, order, cur_data) for order in orders]
 
     @classmethod
-    def execute_order(
-        cls,
-        strat: Strategy,
-        order: Order,
-        cur_data: MarketData,
-    ) -> ExecutedOrder:
+    def execute_order(cls, strat: Strategy, order: Order, cur_data: MarketData) -> ExecutedOrder:
         # TODO: implement limit orders
         latest = cur_data[order.ticker].iloc[-1]
         price = cls.get_execution_price(order.quantity, order.type, latest)
