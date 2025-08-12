@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from typing import Optional
 
-from tiny_backtester.constants import DEFAULT_FUNDS
-from .backtester_types import Order, MarketData
+from tiny_backtester.utils.constants import DEFAULT_FUNDS
+from tiny_backtester.utils.backtester_types import Order, MarketData
 from numpy import float64
 
 

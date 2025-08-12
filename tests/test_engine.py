@@ -1,8 +1,8 @@
 from unittest.mock import patch
 import pandas as pd
 import numpy as np
-from tiny_backtester.backtester_exception import BacktesterException
-from tiny_backtester.backtester_types import ExecutedOrder, Order, Position
+from tiny_backtester.utils.backtester_exception import BacktesterException
+from tiny_backtester.utils.backtester_types import ExecutedOrder, Order, Position
 from tiny_backtester.engine import Engine
 import pytest
 

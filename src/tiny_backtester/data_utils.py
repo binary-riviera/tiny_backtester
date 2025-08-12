@@ -3,9 +3,9 @@ from typing import Literal, Optional
 import pandas as pd
 import numpy as np
 
-from tiny_backtester.backtester_exception import BacktesterException
-from tiny_backtester.backtester_types import MarketData
-from tiny_backtester.constants import MANDATORY_DF_COLUMNS
+from tiny_backtester.utils.backtester_exception import BacktesterException
+from tiny_backtester.utils.backtester_types import MarketData
+from tiny_backtester.utils.constants import MANDATORY_DF_COLUMNS
 
 
 def load_timeseries(

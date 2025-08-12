@@ -1,4 +1,4 @@
-from tiny_backtester.backtester_types import MarketData, Order
+from tiny_backtester.utils.backtester_types import MarketData, Order
 from tiny_backtester.engine import Engine
 import pandas as pd
 

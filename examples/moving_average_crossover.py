@@ -1,4 +1,4 @@
-from tiny_backtester.backtester_types import MarketData, Order
+from tiny_backtester.utils.backtester_types import MarketData, Order
 from tiny_backtester.engine import Engine
 from tiny_backtester.strategy import Strategy
 
@@ -30,4 +30,3 @@ if __name__ == "__main__":
     engine.load_timeseries("./examples/data/TSLA.csv")
     # print(engine.market_data["TSLA"].head())
     results = engine.run(mac)
-    print(results["positions"])

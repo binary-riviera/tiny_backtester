@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import pandas as pd
 import pytest
-from tiny_backtester.backtester_exception import BacktesterException
+from tiny_backtester.utils.backtester_exception import BacktesterException
 from unittest.mock import patch
 from tiny_backtester.data_utils import (
     is_regularly_spaced,
