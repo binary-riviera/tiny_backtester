@@ -175,7 +175,7 @@ def test_get_position_default():
     assert pos.unrealised_pnl != 0.0
 
 
-def test_get_position():
+def test_get_position_buy():
     last_pos = Position(pd.Timestamp.min, 10, np.float64(10.0), np.float64(8.0))
     order = ExecutedOrder(
         last_pos.time + pd.Timedelta(1), "TEST", "buy", 5, np.float64(15.0), "filled"
