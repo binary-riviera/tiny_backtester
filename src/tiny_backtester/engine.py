@@ -84,7 +84,7 @@ class Engine:
 
         def make_executed_order(status: OrderStatus) -> ExecutedOrder:
             return ExecutedOrder(
-                latest.index, order.ticker, order.type, order.quantity, price, status  # type: ignore
+                latest.name, order.ticker, order.type, order.quantity, price, status  # type: ignore
             )
 
         total_order_price = price * order.quantity
@@ -108,7 +108,7 @@ class Engine:
         quantity = last_pos.quantity + quantity_change
         entry_price = np.float64(0)
         realised_pnl = np.float64(last_pos.realised_pnl)
-        unrealised_pnl = cls.get_execution_price(quantity, "sell", latest)
+        unrealised_pnl = quantity * cls.get_execution_price(quantity, "sell", latest)
         if order.type == "buy":
             entry_price = cls.get_average_entry_price(
                 last_pos.entry_price, order.price, last_pos.quantity, order.quantity

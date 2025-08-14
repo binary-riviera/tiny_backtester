@@ -211,7 +211,7 @@ def test_get_position_sell_reset_entry_price():
     assert pos.entry_price == 0.0
     assert pos.fill_price == 15.0
     assert pos.realised_pnl == 50.0
-    assert pos.unrealised_pnl != 0.0
+    assert pos.unrealised_pnl == 0.0
 
 
 def test_load_timeseries():

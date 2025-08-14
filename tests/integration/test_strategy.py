@@ -25,6 +25,22 @@ def test_load_and_run_strategy():
     assert "TEST" in engine.market_data
     assert type(engine.market_data["TEST"]) == pd.DataFrame
     assert len(engine.market_data["TEST"]) == 100
+    assert list(engine.market_data["TEST"].columns) == [
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume",
+        "midpoint",
+        "slippage",
+        "spread",
+    ]
 
-    engine.run(strat=TestStrategy())
+    results = engine.run(strat=TestStrategy())
     assert "TEST_COLUMN" in engine.market_data["TEST"].columns
+    assert "positions" in results
+    assert "orders" in results
+    assert len(results["positions"]) == 1
+    assert len(results["orders"]) > 0  # we should have at least 1 order filled
+    filled_order_len = len(results["orders"][results["orders"]["status"] == "filled"])
+    assert filled_order_len + 1 == len(results["positions"]["TEST"])
