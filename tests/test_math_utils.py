@@ -1,5 +1,14 @@
-from tiny_backtester.utils.math_utils import get_average_entry_price
+from tiny_backtester.utils.math_utils import get_average_entry_price, get_execution_price
 import numpy as np
+import pandas as pd
+
+
+def test_get_execution_price():
+    row1 = pd.Series(data={"slippage": 0.01, "midpoint": 5.0, "spread": 0.01})
+    buy_price = get_execution_price(1, "buy", row1)
+    assert buy_price.round(2) == 5.06
+    sell_price = get_execution_price(1, "sell", row1)
+    assert sell_price.round(2) == 4.95
 
 
 def test_get_average_entry_price():
