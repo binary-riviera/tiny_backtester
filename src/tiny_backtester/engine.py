@@ -10,9 +10,9 @@ from tiny_backtester.utils.backtester_types import (
     ExecutedOrder,
     Order,
     OrderStatus,
-    OrderType,
     Position,
 )
+from tiny_backtester.utils.math_utils import get_average_entry_price, get_execution_price
 
 
 class Engine:
@@ -80,7 +80,7 @@ class Engine:
     def execute_order(cls, strat: Strategy, order: Order, cur_data: MarketData) -> ExecutedOrder:
         # TODO: implement limit orders
         latest = cur_data[order.ticker].iloc[-1]
-        price = cls.get_execution_price(order.quantity, order.type, latest)
+        price = get_execution_price(order.quantity, order.type, latest)
 
         def make_executed_order(status: OrderStatus) -> ExecutedOrder:
             return ExecutedOrder(
@@ -108,9 +108,9 @@ class Engine:
         quantity = last_pos.quantity + quantity_change
         entry_price = np.float64(0)
         realised_pnl = np.float64(last_pos.realised_pnl)
-        unrealised_pnl = quantity * cls.get_execution_price(quantity, "sell", latest)
+        unrealised_pnl = quantity * get_execution_price(quantity, "sell", latest)
         if order.type == "buy":
-            entry_price = cls.get_average_entry_price(
+            entry_price = get_average_entry_price(
                 last_pos.entry_price, order.price, last_pos.quantity, order.quantity
             )
         elif order.type == "sell":
@@ -125,16 +125,3 @@ class Engine:
             unrealised_pnl,
             realised_pnl,
         )
-
-    @staticmethod
-    def get_execution_price(quantity: int, type: OrderType, row: pd.Series) -> np.float64:
-        slippage_pct = quantity * row["slippage"]
-        if type == "buy":
-            return np.float64((row["midpoint"] + 0.5 * row["spread"]) * (1 + slippage_pct))
-        elif type == "sell":
-            return np.float64((row["midpoint"] + 0.5 * row["spread"]) * (1 - slippage_pct))
-        return np.nan
-
-    @staticmethod
-    def get_average_entry_price(p1: np.float64, p2: np.float64, q1: int, q2: int) -> np.float64:
-        return (p1 * q1 + p2 * q2) / (q1 + q2)
