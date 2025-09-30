@@ -32,22 +32,3 @@ def load_timeseries(
 def is_regularly_spaced(df: pd.DataFrame) -> np.bool:
     diff = np.diff(df.index.to_numpy())
     return np.all(diff == diff[0])
-
-
-# TODO: this entire function is unfit for purpose, rewrite to use pandas_market_calendars
-
-
-def resample_market_data(
-    market_data: MarketData, resample: Literal["upsample", "downsample"]
-) -> MarketData:
-    if len(market_data.items()) <= 1:
-        return market_data
-    intervals = [df.index[1] - df.index[0] for df in market_data.values()]
-    if resample == "upsample":  # use the samllest interval
-        return {k: df.resample(min(intervals)).ffill() for k, df in market_data.items()}
-    elif resample == "downsample":  # use the largest interval
-        return {k: df.resample(max(intervals)).mean() for k, df in market_data.items()}
-    else:
-        raise BacktesterException("unsupported sampling type")
-    # TODO: implement custom sampling here
-    # but will need to handle both up and downsampling and apply ffill or mean accordingly
