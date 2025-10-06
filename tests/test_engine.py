@@ -94,10 +94,11 @@ def test_execute_order_buy_valid():
     order = Order("TEST", "buy", 1)
     market_data = get_test_market_data_precalc("TEST")
     executed_order = engine.execute_order(strategy, order, cur_data=market_data)
-    # assert executed_order.price == 1.0
+    assert executed_order.price > 4.0
     assert executed_order.quantity == 1
     assert executed_order.ticker == "TEST"
     assert executed_order.status == "filled"
+    assert strategy.funds < 10000
 
 
 def test_execute_order_buy_invalid():
@@ -106,10 +107,11 @@ def test_execute_order_buy_invalid():
     order = Order("TEST", "buy", 100)
     market_data = get_test_market_data_precalc("TEST")
     executed_order = engine.execute_order(strategy, order, cur_data=market_data)
-    # assert executed_order.price == 1.0
+    assert executed_order.price > 4.0
     assert executed_order.quantity == 100
     assert executed_order.ticker == "TEST"
     assert executed_order.status == "rejected"
+    assert strategy.funds == 1
 
 
 def test_execute_order_sell_valid():
@@ -118,11 +120,12 @@ def test_execute_order_sell_valid():
     order = Order("TEST", "sell", 10)
     market_data = get_test_market_data_precalc("TEST")
     executed_order = engine.execute_order(strategy, order, cur_data=market_data)
-    # assert executed_order.price == 1.0
+    assert executed_order.price < 4.0
     assert executed_order.quantity == 10
     assert executed_order.ticker == "TEST"
     assert executed_order.status == "filled"
     assert strategy.portfolio["TEST"] == 10
+    assert strategy.funds > 1
 
 
 def test_execute_order_sell_invalid():
@@ -131,11 +134,12 @@ def test_execute_order_sell_invalid():
     order = Order("TEST", "sell", 10)
     market_data = get_test_market_data_precalc("TEST")
     executed_order = engine.execute_order(strategy, order, cur_data=market_data)
-    # assert executed_order.price == 1.0
+    assert executed_order.price < 4.0
     assert executed_order.quantity == 10
     assert executed_order.ticker == "TEST"
     assert executed_order.status == "rejected"
     assert strategy.portfolio["TEST"] == 1
+    assert strategy.funds == 1
 
 
 def test_execute_order_invalid_order_type():
@@ -145,6 +149,57 @@ def test_execute_order_invalid_order_type():
     market_data = get_test_market_data_precalc("TEST")
     executed_order = engine.execute_order(strategy, order, cur_data=market_data)
     assert executed_order.status == "unsupported"
+
+
+def test_execute_order_buy_limit_valid():
+    engine = Engine()
+    strategy = get_test_strategy(set(), 1000)
+    order = Order("TEST", "buy", 1, limit_price=10.0)
+    market_data = get_test_market_data_precalc("TEST")
+    executed_order = engine.execute_order(strategy, order, cur_data=market_data)
+    assert executed_order.price > 1.0
+    assert executed_order.quantity == 1
+    assert executed_order.ticker == "TEST"
+    assert executed_order.status == "filled"
+
+
+def test_execute_order_buy_limit_invalid():
+    engine = Engine()
+    strategy = get_test_strategy(set(), 1000)
+    order = Order("TEST", "buy", 1, limit_price=0.5)
+    market_data = get_test_market_data_precalc("TEST")
+    executed_order = engine.execute_order(strategy, order, cur_data=market_data)
+    assert executed_order.price > 1.0
+    assert executed_order.quantity == 1
+    assert executed_order.ticker == "TEST"
+    assert executed_order.status == "rejected"
+
+
+def test_execute_order_sell_limit_valid():
+    engine = Engine()
+    strategy = get_test_strategy(set(), 1, {"TEST": 20})
+    order = Order("TEST", "sell", 10, limit_price=0.1)
+    market_data = get_test_market_data_precalc("TEST")
+    executed_order = engine.execute_order(strategy, order, cur_data=market_data)
+    print(executed_order)
+    assert executed_order.price < 4.0
+    assert executed_order.quantity == 10
+    assert executed_order.ticker == "TEST"
+    assert executed_order.status == "filled"
+    assert strategy.portfolio["TEST"] == 10
+
+
+def test_execute_order_sell_limit_invalid():
+    engine = Engine()
+    strategy = get_test_strategy(set(), 1, {"TEST": 1})
+    order = Order("TEST", "sell", 10, limit_price=10.0)
+    market_data = get_test_market_data_precalc("TEST")
+    executed_order = engine.execute_order(strategy, order, cur_data=market_data)
+    assert executed_order.price < 4.0
+    assert executed_order.quantity == 10
+    assert executed_order.ticker == "TEST"
+    assert executed_order.status == "rejected"
+    assert strategy.portfolio["TEST"] == 1
 
 
 def test_get_position_default():

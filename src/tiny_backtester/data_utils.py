@@ -1,10 +1,9 @@
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Optional
 import pandas as pd
 import numpy as np
 
 from tiny_backtester.utils.backtester_exception import BacktesterException
-from tiny_backtester.utils.backtester_types import MarketData
 from tiny_backtester.utils.constants import MANDATORY_DF_COLUMNS
 
 

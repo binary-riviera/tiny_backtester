@@ -2,14 +2,14 @@ import numpy as np
 import pandas as pd
 
 from tiny_backtester.utils.backtester_types import OrderType
+from tiny_backtester.utils.decorators import log
 
 
 def get_execution_price(quantity: int, type: OrderType, row: pd.Series) -> np.float64:
-    slippage_pct = quantity * row["slippage"]
     if type == "buy":
-        return np.float64((row["midpoint"] + 0.5 * row["spread"]) * (1 + slippage_pct))
+        return np.float64((row["midpoint"] + 0.5 * row["spread"]) * (1 + row["slippage"]))
     elif type == "sell":
-        return np.float64((row["midpoint"] + 0.5 * row["spread"]) * (1 - slippage_pct))
+        return np.float64((row["midpoint"] - 0.5 * row["spread"]) * (1 - row["slippage"]))
     return np.nan
 
 

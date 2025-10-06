@@ -59,7 +59,6 @@ class Engine:
     def load_timeseries(self, filepath: str, ticker: Optional[str] = None):
         ticker, df = load_timeseries(filepath, ticker)
         # precalculate data needed for pricing
-        # TODO: future speed up: store calcs in numpy array associated with ticker instead of df
         df["midpoint"] = (df["high"] + df["low"]) / 2
         df["slippage"] = self.k / df["volume"]
         # implementation of "A Simple Implicit Measure of the Effective Bid-Ask Spread in an Efficient Market [1984], Roll"
@@ -67,7 +66,6 @@ class Engine:
         cov = np.cov(delta)
         spread = 2 * np.sqrt(-cov) if cov < 0 else 0.0
         df["spread"] = spread
-        # TODO: store spread as seperate attribute in market_data
         self.market_data[ticker] = df
 
     @classmethod
@@ -89,13 +87,15 @@ class Engine:
 
         total_order_price = price * order.quantity
         if order.type == "buy":
-            if total_order_price > strat.funds:
+            if total_order_price > strat.funds or (order.limit_price and order.limit_price < price):
                 return make_executed_order("rejected")
             strat.funds -= total_order_price
             strat.portfolio[order.ticker] += order.quantity
             return make_executed_order("filled")
         elif order.type == "sell":
-            if strat.portfolio[order.ticker] < order.quantity:
+            if strat.portfolio[order.ticker] < order.quantity or (
+                order.limit_price and order.limit_price > price
+            ):
                 return make_executed_order("rejected")
             strat.funds += total_order_price
             strat.portfolio[order.ticker] -= order.quantity
