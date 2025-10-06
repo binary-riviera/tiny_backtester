@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 
 from tiny_backtester.utils.backtester_types import OrderType
-from tiny_backtester.utils.decorators import log
 
 
 def get_execution_price(quantity: int, type: OrderType, row: pd.Series) -> np.float64:
