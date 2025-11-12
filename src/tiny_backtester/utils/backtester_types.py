@@ -1,10 +1,11 @@
-from typing import Literal, NamedTuple
+from typing import Literal, NamedTuple, TypedDict
 from pandas import DataFrame, Timestamp
 from numpy import float64
 
 OrderType = Literal["buy", "sell"]
 OrderStatus = Literal["filled", "rejected", "unsupported"]
 MarketData = dict[str, DataFrame]
+RunResults = TypedDict("RunResults", {"orders": DataFrame, "positions": dict[str, DataFrame]})
 
 
 class Order(NamedTuple):

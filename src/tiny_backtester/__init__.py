@@ -1,8 +1,6 @@
 import logging
 import sys
 import os
-from functools import wraps
-from collections.abc import Callable
 
 logger = logging.getLogger("tiny_backtester")
 

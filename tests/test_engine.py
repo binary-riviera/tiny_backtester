@@ -2,32 +2,32 @@ from unittest.mock import patch
 import pandas as pd
 import numpy as np
 from tiny_backtester.utils.backtester_exception import BacktesterException
-from tiny_backtester.utils.backtester_types import ExecutedOrder, Order, Position
+from tiny_backtester.utils.backtester_types import ExecutedOrder, MarketData, Order, Position
 from tiny_backtester.engine import Engine
 import pytest
 
 from tiny_backtester.strategy import Strategy
 
 
-def get_test_strategy(tickers, funds, portfolio=None):
+def get_test_strategy(tickers: set[str], funds: int, portfolio: dict[str, int] | None =None):
     class TestStrategy(Strategy):
-        def __init__(self, tickers, funds):
+        def __init__(self, tickers: set[str], funds: int):
             super().__init__()
             self.tickers = tickers
             self.funds = np.float64(funds)
             if portfolio:
                 self.portfolio = portfolio
 
-        def precalc(self, data):
+        def precalc(self, data: MarketData):
             pass
 
-        def run(self, data):
+        def run(self, data: MarketData):
             return None
 
     return TestStrategy(tickers, funds)
 
 
-def get_test_market_data_precalc(ticker):
+def get_test_market_data_precalc(ticker: str) -> MarketData:
     return {
         ticker: pd.DataFrame(
             data={
@@ -38,7 +38,8 @@ def get_test_market_data_precalc(ticker):
                 "slippage": [0.1, 0.1, 0.1, 0.1],
                 "midpoint": [1.0, 2.0, 3.0, 4.0],
                 "spread": [0.1, 0.1, 0.1, 0.1],
-            }
+            },
+            index=pd.date_range('1/1/2000', periods=4, freq="min"),
         )
     }
 
@@ -94,6 +95,7 @@ def test_execute_order_buy_valid():
     order = Order("TEST", "buy", 1)
     market_data = get_test_market_data_precalc("TEST")
     executed_order = engine.execute_order(strategy, order, cur_data=market_data)
+    assert type(executed_order.time) == pd.Timestamp
     assert executed_order.price > 4.0
     assert executed_order.quantity == 1
     assert executed_order.ticker == "TEST"
@@ -107,6 +109,7 @@ def test_execute_order_buy_invalid():
     order = Order("TEST", "buy", 100)
     market_data = get_test_market_data_precalc("TEST")
     executed_order = engine.execute_order(strategy, order, cur_data=market_data)
+    assert type(executed_order.time) == pd.Timestamp
     assert executed_order.price > 4.0
     assert executed_order.quantity == 100
     assert executed_order.ticker == "TEST"
@@ -120,6 +123,7 @@ def test_execute_order_sell_valid():
     order = Order("TEST", "sell", 10)
     market_data = get_test_market_data_precalc("TEST")
     executed_order = engine.execute_order(strategy, order, cur_data=market_data)
+    assert type(executed_order.time) == pd.Timestamp
     assert executed_order.price < 4.0
     assert executed_order.quantity == 10
     assert executed_order.ticker == "TEST"
@@ -134,6 +138,7 @@ def test_execute_order_sell_invalid():
     order = Order("TEST", "sell", 10)
     market_data = get_test_market_data_precalc("TEST")
     executed_order = engine.execute_order(strategy, order, cur_data=market_data)
+    assert type(executed_order.time) == pd.Timestamp
     assert executed_order.price < 4.0
     assert executed_order.quantity == 10
     assert executed_order.ticker == "TEST"

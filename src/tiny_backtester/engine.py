@@ -11,8 +11,12 @@ from tiny_backtester.utils.backtester_types import (
     Order,
     OrderStatus,
     Position,
+    RunResults,
 )
-from tiny_backtester.utils.math_utils import get_average_entry_price, get_execution_price
+from tiny_backtester.utils.math_utils import (
+    get_average_entry_price,
+    get_execution_price,
+)
 
 
 class Engine:
@@ -20,9 +24,9 @@ class Engine:
     k: float = 0.5  # slippage sensitivity constant
 
     def __init__(self):
-        self.market_data = {}
+        self.market_data: MarketData = {}
 
-    def run(self, strat: Strategy, n_epochs: Optional[int] = None) -> dict:
+    def run(self, strat: Strategy, n_epochs: Optional[int] = None) -> RunResults:
         if not strat.funds or strat.funds <= 0:
             raise BacktesterException("strategy funds must be greater than 0")
         if not self.market_data or len(self.market_data) == 0:
@@ -40,16 +44,13 @@ class Engine:
         pos_info = {t: [Position()] for t in strat.tickers}
         for i in range(1, n_epochs + 1):
             cur_data = {t: self.market_data[t].iloc[:i] for t in strat.tickers}
-            if orders := strat.run(cur_data):
-                executed_orders = self.execute_orders(strat, orders, cur_data)
-                for o in executed_orders:
-                    if o.status == "filled":
-                        pos_info[o.ticker].append(
-                            self.get_position(
-                                pos_info[o.ticker][-1], o, cur_data[o.ticker].iloc[-1]
-                            )
-                        )
-                order_log.extend(executed_orders)
+            executed_orders = self.execute_orders(strat, strat.run(cur_data) or [], cur_data)
+            for o in executed_orders:
+                if o.status == "filled":
+                    pos_info[o.ticker].append(
+                        self.get_position(pos_info[o.ticker][-1], o, cur_data[o.ticker].iloc[-1])
+                    )
+            order_log.extend(executed_orders)
 
         return {
             "orders": pd.DataFrame(data=order_log),
@@ -76,13 +77,17 @@ class Engine:
 
     @classmethod
     def execute_order(cls, strat: Strategy, order: Order, cur_data: MarketData) -> ExecutedOrder:
-        # TODO: implement limit orders
         latest = cur_data[order.ticker].iloc[-1]
         price = get_execution_price(order.quantity, order.type, latest)
 
         def make_executed_order(status: OrderStatus) -> ExecutedOrder:
             return ExecutedOrder(
-                latest.name, order.ticker, order.type, order.quantity, price, status  # type: ignore
+                latest.name,
+                order.ticker,
+                order.type,
+                order.quantity,
+                price,
+                status,
             )
 
         total_order_price = price * order.quantity
