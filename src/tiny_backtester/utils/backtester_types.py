@@ -16,7 +16,7 @@ class Order(NamedTuple):
     limit_price: float | None = None
 
 
-class ExecutedOrder(NamedTuple):  # TODO: add id
+class ExecutedOrder(NamedTuple):
     time: pd.Timestamp
     ticker: str
     type: OrderType
@@ -32,3 +32,4 @@ class Position(NamedTuple):
     fill_price: float64 = float64(0)
     unrealised_pnl: float64 = float64(0)
     realised_pnl: float64 = float64(0)
+    
