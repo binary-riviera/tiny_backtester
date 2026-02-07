@@ -1,6 +1,5 @@
 from typing import Literal, NamedTuple, TypedDict
 from numpy import float64
-from functools import partial
 import pandas as pd
 
 OrderType = Literal["buy", "sell"]
@@ -32,4 +31,3 @@ class Position(NamedTuple):
     fill_price: float64 = float64(0)
     unrealised_pnl: float64 = float64(0)
     realised_pnl: float64 = float64(0)
-    
