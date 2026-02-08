@@ -4,12 +4,13 @@ import numpy as np
 from tiny_backtester.utils.backtester_exception import BacktesterException
 from tiny_backtester.utils.backtester_types import ExecutedOrder, MarketData, Order, Position
 from tiny_backtester.engine import Engine
+from pandas.testing import assert_frame_equal
 import pytest
 
 from tiny_backtester.strategy import Strategy
 
 
-def get_test_strategy(tickers: set[str], funds: int, portfolio: dict[str, int] | None =None):
+def get_test_strategy(tickers: set[str], funds: int, portfolio: dict[str, int] | None = None):
     class TestStrategy(Strategy):
         def __init__(self, tickers: set[str], funds: int):
             super().__init__()
@@ -39,7 +40,7 @@ def get_test_market_data_precalc(ticker: str) -> MarketData:
                 "midpoint": [1.0, 2.0, 3.0, 4.0],
                 "spread": [0.1, 0.1, 0.1, 0.1],
             },
-            index=pd.date_range('1/1/2000', periods=4, freq="min"),
+            index=pd.date_range("1/1/2000", periods=4, freq="min"),
         )
     }
 
@@ -56,6 +57,18 @@ def get_latest_df():
             "spread": [0.01],
         }
     ).iloc[0]
+
+
+def get_test_df_input() -> pd.DataFrame:
+    return pd.DataFrame(
+        data={
+            "high": [1.0, 2.0, 3.0, 4.0],
+            "low": [1.0, 2.0, 3.0, 4.0],
+            "close": [1.0, 2.0, 3.0, 4.0],
+            "volume": [100, 100, 100, 100],
+        },
+        index=pd.date_range("1/1/2000", periods=4, freq="min"),
+    )
 
 
 def test_run_no_funds():
@@ -259,20 +272,11 @@ def test_get_position_sell_reset_entry_price():
     assert pos.unrealised_pnl == 0.0
 
 
-def test_load_timeseries():
+def load_ts_valid():
     engine = Engine()
-    valid_df = pd.DataFrame(
-        data={
-            "high": [1.0, 2.0, 3.0, 4.0],
-            "low": [1.0, 2.0, 3.0, 4.0],
-            "close": [1.0, 2.0, 3.0, 4.0],
-            "volume": [100, 100, 100, 100],
-        }
+    engine.load_ts("TEST", get_test_df_input())
+    assert len(engine.market_data) == 1
+    assert "TEST" in engine.market_data
+    assert_frame_equal(
+        engine.market_data["TEST"], get_test_market_data_precalc("TEST")["TEST"], check_exact=True
     )
-    with patch("tiny_backtester.engine.load_timeseries") as mock_method:
-        mock_method.return_value = ("TEST", valid_df)
-        engine.load_timeseries("test.csv", "TEST")
-        assert "TEST" in engine.market_data
-        assert "midpoint" in engine.market_data["TEST"].columns
-        assert "slippage" in engine.market_data["TEST"].columns
-        assert "spread" in engine.market_data["TEST"].columns

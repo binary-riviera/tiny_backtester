@@ -1,6 +1,7 @@
 from typing import Optional
 import pandas as pd
 import numpy as np
+import pandera.pandas as pa
 
 from tiny_backtester.data_utils import load_timeseries
 from tiny_backtester.strategy import Strategy
@@ -12,6 +13,7 @@ from tiny_backtester.utils.backtester_types import (
     OrderStatus,
     Position,
     RunResults,
+    TimeSeries,
 )
 from tiny_backtester.utils.math_utils import (
     get_average_entry_price,
@@ -57,8 +59,9 @@ class Engine:
             "positions": {t: pd.DataFrame(data=d) for t, d in pos_info.items()},
         }
 
-    def load_timeseries(self, filepath: str, ticker: Optional[str] = None):
-        ticker, df = load_timeseries(filepath, ticker)
+    @pa.check_input(TimeSeries.to_schema(), "df")
+    def load_ts(self, ticker: str, df: pd.DataFrame):
+        df.columns = df.columns.str.lower()
         # precalculate data needed for pricing
         df["midpoint"] = (df["high"] + df["low"]) / 2
         df["slippage"] = self.k / df["volume"]

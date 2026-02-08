@@ -1,6 +1,8 @@
-from typing import Literal, NamedTuple, TypedDict
+from typing import Literal, NamedTuple, TypedDict, Optional
 from numpy import float64
 import pandas as pd
+import pandera.pandas as pa
+import pandera.typing.pandas as pat
 
 OrderType = Literal["buy", "sell"]
 OrderStatus = Literal["filled", "rejected", "unsupported"]
@@ -31,3 +33,12 @@ class Position(NamedTuple):
     fill_price: float64 = float64(0)
     unrealised_pnl: float64 = float64(0)
     realised_pnl: float64 = float64(0)
+
+
+class TimeSeries(pa.DataFrameModel):
+    datetime: pat.Index[pd.Timestamp]
+    open: pat.Series[float]
+    high: pat.Series[float]
+    low: pat.Series[float]
+    close: pat.Series[float]
+    volume: Optional[pat.Series[int]]

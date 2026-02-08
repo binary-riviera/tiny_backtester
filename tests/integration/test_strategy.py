@@ -21,7 +21,9 @@ class TestStrategy(Strategy):
 
 def test_load_and_run_strategy():
     engine = Engine()
-    engine.load_timeseries(VALID_DATASET_PATH, "TEST")
+    df = pd.read_csv(VALID_DATASET_PATH, index_col="datetime")
+    df.index = pd.to_datetime(df.index)
+    engine.load_ts("TEST", df)
     assert "TEST" in engine.market_data
     assert type(engine.market_data["TEST"]) == pd.DataFrame
     assert len(engine.market_data["TEST"]) == 100
