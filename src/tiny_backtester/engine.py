@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 import pandera.pandas as pa
 
-from tiny_backtester.data_utils import load_timeseries
 from tiny_backtester.strategy import Strategy
 from tiny_backtester.utils.backtester_exception import BacktesterException
 from tiny_backtester.utils.backtester_types import (
