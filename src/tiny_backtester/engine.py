@@ -17,12 +17,11 @@ from tiny_backtester.utils.backtester_types import (
 from tiny_backtester.utils.math_utils import (
     get_average_entry_price,
     get_execution_price,
+    process_df,
 )
 
 
 class Engine:
-    # pricing parameters / options
-    k: float = 0.5  # slippage sensitivity constant
 
     def __init__(self):
         self.market_data: MarketData = {}
@@ -61,15 +60,7 @@ class Engine:
     @pa.check_input(TimeSeries.to_schema(), "df")
     def load_ts(self, ticker: str, df: pd.DataFrame):
         df.columns = df.columns.str.lower()
-        # precalculate data needed for pricing
-        df["midpoint"] = (df["high"] + df["low"]) / 2
-        df["slippage"] = self.k / df["volume"]
-        # implementation of "A Simple Implicit Measure of the Effective Bid-Ask Spread in an Efficient Market [1984], Roll"
-        delta = np.diff(df["close"].to_numpy())
-        cov = np.cov(delta)
-        spread = 2 * np.sqrt(-cov) if cov < 0 else 0.0
-        df["spread"] = spread
-        self.market_data[ticker] = df
+        self.market_data[ticker] = process_df(df)
 
     @classmethod
     def execute_orders(
