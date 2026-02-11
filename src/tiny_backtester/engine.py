@@ -2,6 +2,7 @@ from typing import Optional
 import pandas as pd
 import numpy as np
 import pandera.pandas as pa
+import pandera.typing as pat
 
 from tiny_backtester.strategy import Strategy
 from tiny_backtester.utils.backtester_exception import BacktesterException
@@ -57,9 +58,8 @@ class Engine:
             "positions": {t: pd.DataFrame(data=d) for t, d in pos_info.items()},
         }
 
-    @pa.check_input(TimeSeries.to_schema(), "df")
-    def load_ts(self, ticker: str, df: pd.DataFrame):
-        df.columns = df.columns.str.lower()
+    @pa.check_types
+    def load_ts(self, ticker: str, df: pat.DataFrame[TimeSeries]):
         self.market_data[ticker] = process_df(df)
 
     @classmethod
@@ -71,7 +71,7 @@ class Engine:
     @classmethod
     def execute_order(cls, strat: Strategy, order: Order, cur_data: MarketData) -> ExecutedOrder:
         latest = cur_data[order.ticker].iloc[-1]
-        price = get_execution_price(order.quantity, order.type, latest)
+        price = get_execution_price(order.type, latest)
 
         def make_executed_order(status: OrderStatus) -> ExecutedOrder:
             return ExecutedOrder(
@@ -106,7 +106,7 @@ class Engine:
         quantity = last_pos.quantity + quantity_change
         entry_price = np.float64(0)
         realised_pnl = np.float64(last_pos.realised_pnl)
-        unrealised_pnl = quantity * get_execution_price(quantity, "sell", latest)
+        unrealised_pnl = quantity * get_execution_price("sell", latest)
         if order.type == "buy":
             entry_price = get_average_entry_price(
                 last_pos.entry_price, order.price, last_pos.quantity, order.quantity

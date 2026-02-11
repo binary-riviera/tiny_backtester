@@ -5,9 +5,9 @@ import pandas as pd
 
 def test_get_execution_price():
     row1 = pd.Series(data={"slippage": 0.01, "midpoint": 5.0, "spread": 0.01})
-    buy_price = get_execution_price(1, "buy", row1)
+    buy_price = get_execution_price("buy", row1)
     assert buy_price.round(2) == 5.06
-    sell_price = get_execution_price(1, "sell", row1)
+    sell_price = get_execution_price("sell", row1)
     assert sell_price.round(2) == 4.95
 
 

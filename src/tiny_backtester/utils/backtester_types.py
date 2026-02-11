@@ -42,3 +42,6 @@ class TimeSeries(pa.DataFrameModel):
     low: pat.Series[float]
     close: pat.Series[float]
     volume: Optional[pat.Series[int]]
+    midpoint: Optional[pat.Series[float]]
+    slippage: Optional[pat.Series[float]]
+    spread: Optional[pat.Series[float]]
