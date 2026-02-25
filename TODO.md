@@ -7,3 +7,4 @@ Todos:
 - store single values in market data object as opposed to as a new column
 - add rest of financial calculations required to make it full featured
 - implement example strategy
+- check spread in calculate_spread is working correctly
