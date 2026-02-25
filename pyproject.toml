@@ -13,6 +13,7 @@ python = "^3.13"
 pandas-stubs = "^2.3.2.250926"
 mypy = "^1.18.2"
 pandera = "^0.26.1"
+pandas-market-calendars = "*"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^8.4.1"

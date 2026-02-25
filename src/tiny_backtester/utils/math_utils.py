@@ -1,9 +1,11 @@
+from typing import Optional
 import numpy as np
 import pandas as pd
 import pandera.pandas as pa
 import pandera.typing as pat
 
-from tiny_backtester.utils.backtester_types import OrderType, TimeSeries
+from tiny_backtester.utils.backtester_exception import BacktesterException
+from tiny_backtester.utils.backtester_types import CalendarType, OrderType, TimeSeries
 
 # pricing parameters / options
 k: float = 0.5  # slippage sensitivity constant
@@ -33,7 +35,13 @@ def calculate_spread(df: pat.DataFrame[TimeSeries]) -> pat.DataFrame[TimeSeries]
 
 
 @pa.check_types
-def process_df(df: pat.DataFrame[TimeSeries]) -> pat.DataFrame[TimeSeries]:
+def process_df(
+    df: pat.DataFrame[TimeSeries],
+    cal: CalendarType = "continuous_24_7",
+    resample_freq: Optional[str] = None,
+) -> pat.DataFrame[TimeSeries]:
+    if resample_freq and cal != "continuous_24_7":
+        raise BacktesterException("Unsupported resampling operation")
     return (
         df.rename(columns=str.lower)
         .pipe(lambda d: d.assign(midpoint=(d["high"] + d["low"]) / 2) if "midpoint" not in d else d)

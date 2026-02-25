@@ -8,9 +8,12 @@ OrderType = Literal["buy", "sell"]
 OrderStatus = Literal["filled", "rejected", "unsupported"]
 MarketData = dict[str, pd.DataFrame]
 RunResults = TypedDict("RunResults", {"orders": pd.DataFrame, "positions": dict[str, pd.DataFrame]})
+CalendarType = Literal["exchange_hours", "extended_hours", "continous_24_5", "continuous_24_7"]
 
 
 class Order(NamedTuple):
+    """Order request"""
+
     ticker: str
     type: OrderType
     quantity: int
@@ -27,6 +30,8 @@ class ExecutedOrder(NamedTuple):
 
 
 class Position(NamedTuple):
+    """Position in a given asset at a given time"""
+
     time: pd.Timestamp = pd.Timestamp.min
     quantity: int = 0
     entry_price: float64 = float64(0)
@@ -36,6 +41,8 @@ class Position(NamedTuple):
 
 
 class TimeSeries(pa.DataFrameModel):
+    """Price data for a given asset"""
+
     datetime: pat.Index[pd.Timestamp]
     open: pat.Series[float]
     high: pat.Series[float]

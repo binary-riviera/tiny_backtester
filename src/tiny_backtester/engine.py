@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 import pandas as pd
 import numpy as np
@@ -20,6 +21,8 @@ from tiny_backtester.utils.math_utils import (
     get_execution_price,
     process_df,
 )
+
+logger = logging.getLogger("tiny_backtester")
 
 
 class Engine:
@@ -52,6 +55,7 @@ class Engine:
                         self.get_position(pos_info[o.ticker][-1], o, cur_data[o.ticker].iloc[-1])
                     )
             order_log.extend(executed_orders)
+            logging.debug(f"filled {len(executed_orders)}")
 
         return {
             "orders": pd.DataFrame(data=order_log),
@@ -61,6 +65,7 @@ class Engine:
     @pa.check_types
     def load_ts(self, ticker: str, df: pat.DataFrame[TimeSeries]):
         self.market_data[ticker] = process_df(df)
+        logger.debug(f"added ticker data {ticker} of dims {df.shape}")
 
     @classmethod
     def execute_orders(
@@ -89,6 +94,7 @@ class Engine:
                 return make_executed_order("rejected")
             strat.funds -= total_order_price
             strat.portfolio[order.ticker] += order.quantity
+            logger.debug(f"filled buy order: {order.quantity} x {order.ticker} @ {price}")
             return make_executed_order("filled")
         elif order.type == "sell":
             if strat.portfolio[order.ticker] < order.quantity or (
@@ -97,7 +103,9 @@ class Engine:
                 return make_executed_order("rejected")
             strat.funds += total_order_price
             strat.portfolio[order.ticker] -= order.quantity
+            logger.debug(f"filled sell order: {order.quantity} x {order.ticker} @ {price}")
             return make_executed_order("filled")
+        logger.debug(f"unsupported order: {order}")
         return make_executed_order("unsupported")
 
     @classmethod
