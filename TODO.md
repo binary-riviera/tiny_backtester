@@ -1,6 +1,5 @@
 Todos:
 
-- set up correct entry points
 - add resampling support using pandas market calendars library for data other than 24/7
 - performance tests to work out slow points
 - support options?

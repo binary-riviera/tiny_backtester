@@ -6,6 +6,10 @@ packages = [{ include = "tiny_backtester", from = "src" }]
 readme = "README.md"
 version = "0.0.2"
 
+
+[tool.poetry.scripts]
+tiny-backtester = "tiny_backtester.cli:main"
+
 [tool.poetry.dependencies]
 matplotlib = "^3.10.3"
 pandas = "^2.3.0"
