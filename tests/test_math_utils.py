@@ -34,28 +34,41 @@ def test_get_average_entry_price():
     assert get_average_entry_price(p1, p2, q1, q2).round(2) == 5.45
 
 
-def test_process_df_no_calc_no_resample():
+def test_process_df_calc():
+    # no calc
     test_df = get_full_df()
     new_df = process_df(test_df)
     assert_frame_equal(test_df, new_df)
 
-
-def test_process_df_calc_resample():
-    assert False
-
-
-def test_process_df_calc_no_resample():
+    # calc
     test_df = get_df_input()
     new_df = process_df(test_df)
-
     assert len(test_df) == len(new_df)
     assert "spread" in new_df
     assert "slippage" in new_df
     assert "midpoint" in new_df
 
 
-def test_process_df_no_calc_resample():
-    assert False
+def test_process_df_resample():
+    test_df = get_full_df()
+    # upsample
+    new_df = process_df(test_df, "continuous_24_7", "30min")
+    assert test_df.shape[1] == new_df.shape[1]
+    assert ((2 * test_df.shape[0]) - 1) == new_df.shape[0]
+    assert new_df.index.inferred_freq == "30min"
+    # downsample
+    new_df = process_df(test_df, "continuous_24_7", "D")
+    assert test_df.shape[1] == new_df.shape[1]
+    assert len(new_df) == 1
+    new_series = new_df.iloc[0]
+    assert new_series["open"] == 1.0
+    assert new_series["high"] == 4.0
+    assert new_series["low"] == 1.0
+    assert new_series["close"] == 4.0
+    assert new_series["volume"] == 400.0
+    assert new_series["slippage"] == 0.1
+    assert new_series["midpoint"] == 2.5
+    assert new_series["spread"] == 0.1
 
 
 def test_process_df_invalid_calendar():

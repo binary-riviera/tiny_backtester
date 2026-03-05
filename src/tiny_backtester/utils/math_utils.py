@@ -45,7 +45,16 @@ def resample(
             return df.resample(resample_freq).ffill()
         case ("continuous_24_7", "downsample"):
             return df.resample(resample_freq).agg(
-                {"Open": "first", "High": "max", "Low": "min", "Close": "last", "Volume": "sum"}
+                {
+                    "open": "first",
+                    "high": "max",
+                    "low": "min",
+                    "close": "last",
+                    "volume": "sum",
+                    "slippage": "mean",
+                    "midpoint": "mean",  # TODO: is this right?
+                    "spread": "mean",
+                }
             )
         case _:
             raise BacktesterException("Unsupported resampling operation")
@@ -54,13 +63,12 @@ def resample(
 
 @pa.check_types
 def calculate_spread(df: pat.DataFrame[TimeSeries]) -> pat.DataFrame[TimeSeries]:
-    if "spread" not in df:
-        # implementation of "A Simple Implicit Measure of the Effective Bid-Ask Spread in an Efficient Market [1984], Roll"
-        delta = np.diff(df["close"].to_numpy())
-        cov = np.cov(delta)
-        spread = 2 * np.sqrt(-cov) if cov < 0 else 0.0
-        df["spread"] = spread
-        logger.debug(f"calculated spread {spread}")
+    # implementation of "A Simple Implicit Measure of the Effective Bid-Ask Spread in an Efficient Market [1984], Roll"
+    delta = np.diff(df["close"].to_numpy())
+    cov = np.cov(delta)
+    spread = 2 * np.sqrt(-cov) if cov < 0 else 0.0
+    df["spread"] = spread
+    logger.debug(f"calculated spread {spread}")
     return df
 
 
@@ -74,8 +82,8 @@ def process_df(
         raise BacktesterException("Must provide both 'cal' and 'resample_freq' to resample")
     return (
         df.rename(columns=str.lower)
-        .pipe(lambda d: resample(d, cal, resample_freq) if (cal and resample_freq) else d)
         .pipe(lambda d: d.assign(midpoint=(d["high"] + d["low"]) / 2) if "midpoint" not in d else d)
         .pipe(lambda d: d.assign(slippage=k / d["volume"]) if "slippage" not in d else d)
-        .pipe(calculate_spread)
+        .pipe(lambda d: calculate_spread(d) if "spread" not in d else d)
+        .pipe(lambda d: resample(d, cal, resample_freq) if (cal and resample_freq) else d)
     )

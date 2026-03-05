@@ -38,7 +38,7 @@ def get_full_df():
             "midpoint": [1.0, 2.0, 3.0, 4.0],
             "spread": [0.1, 0.1, 0.1, 0.1],
         },
-        index=pd.date_range("1/1/2000", periods=4, freq="min"),
+        index=pd.date_range("1/1/2000", periods=4, freq="h"),
     )
 
 
@@ -65,5 +65,5 @@ def get_df_input() -> pd.DataFrame:
             "close": [1.0, 2.0, 3.0, 4.0],
             "volume": [100, 100, 100, 100],
         },
-        index=pd.date_range("1/1/2000", periods=4, freq="min"),
+        index=pd.date_range("1/1/2000", periods=4, freq="h"),
     )
