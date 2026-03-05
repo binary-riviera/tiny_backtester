@@ -3,9 +3,12 @@ import numpy as np
 import pandas as pd
 import pandera.pandas as pa
 import pandera.typing as pat
+import logging
 
 from tiny_backtester.utils.backtester_exception import BacktesterException
 from tiny_backtester.utils.backtester_types import CalendarType, OrderType, TimeSeries
+
+logger = logging.getLogger("tiny_backtester")
 
 # pricing parameters / options
 k: float = 0.5  # slippage sensitivity constant
@@ -24,6 +27,14 @@ def get_average_entry_price(p1: np.float64, p2: np.float64, q1: int, q2: int) ->
 
 
 @pa.check_types
+def resample(
+    df: pat.DataFrame[TimeSeries], cal: CalendarType, resample_freq: Optional[str]
+) -> pat.DataFrame[TimeSeries]:
+    logger.debug(f"resampling df with calendar: {cal} frequency: {resample_freq}")
+    return df
+
+
+@pa.check_types
 def calculate_spread(df: pat.DataFrame[TimeSeries]) -> pat.DataFrame[TimeSeries]:
     if "spread" not in df:
         # implementation of "A Simple Implicit Measure of the Effective Bid-Ask Spread in an Efficient Market [1984], Roll"
@@ -31,6 +42,7 @@ def calculate_spread(df: pat.DataFrame[TimeSeries]) -> pat.DataFrame[TimeSeries]
         cov = np.cov(delta)
         spread = 2 * np.sqrt(-cov) if cov < 0 else 0.0
         df["spread"] = spread
+        logger.debug(f"calculated spread {spread}")
     return df
 
 
@@ -44,6 +56,7 @@ def process_df(
         raise BacktesterException("Unsupported resampling operation")
     return (
         df.rename(columns=str.lower)
+        .pipe(lambda d: resample(d, cal, resample_freq))
         .pipe(lambda d: d.assign(midpoint=(d["high"] + d["low"]) / 2) if "midpoint" not in d else d)
         .pipe(lambda d: d.assign(slippage=k / d["volume"]) if "slippage" not in d else d)
         .pipe(calculate_spread)
