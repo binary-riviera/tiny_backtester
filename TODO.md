@@ -1,6 +1,6 @@
 Todos:
 
-- add resampling support using pandas market calendars library
+- add resampling support using pandas market calendars library for data other than 24/7
 - performance tests to work out slow points
 - support options?
 - future speed up: store calcs in numpy array associated with ticker instead of df
