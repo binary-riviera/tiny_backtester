@@ -1,4 +1,12 @@
-from tiny_backtester.utils.math_utils import get_average_entry_price, get_execution_price
+from pandas.testing import assert_frame_equal
+import pytest
+from tests.test_utils import get_df_input, get_full_df
+from tiny_backtester.utils.backtester_exception import BacktesterException
+from tiny_backtester.utils.math_utils import (
+    get_average_entry_price,
+    get_execution_price,
+    process_df,
+)
 import numpy as np
 import pandas as pd
 
@@ -24,3 +32,45 @@ def test_get_average_entry_price():
     q2 = 100
     p2 = np.float64(5.0)
     assert get_average_entry_price(p1, p2, q1, q2).round(2) == 5.45
+
+
+def test_process_df_no_calc_no_resample():
+    test_df = get_full_df()
+    new_df = process_df(test_df)
+    assert_frame_equal(test_df, new_df)
+
+
+def test_process_df_calc_resample():
+    assert False
+
+
+def test_process_df_calc_no_resample():
+    test_df = get_df_input()
+    new_df = process_df(test_df)
+
+    assert len(test_df) == len(new_df)
+    assert "spread" in new_df
+    assert "slippage" in new_df
+    assert "midpoint" in new_df
+
+
+def test_process_df_no_calc_resample():
+    assert False
+
+
+def test_process_df_invalid_calendar():
+    test_df = get_df_input()
+    with pytest.raises(BacktesterException, match="Unsupported resampling operation"):
+        process_df(test_df, cal="exchange_hours", resample_freq="1D")
+
+
+def test_process_df_invalid_args_sampling():
+    test_df = get_df_input()
+    with pytest.raises(
+        BacktesterException, match="Must provide both 'cal' and 'resample_freq' to resample"
+    ):
+        process_df(test_df, cal="exchange_hours")
+    with pytest.raises(
+        BacktesterException, match="Must provide both 'cal' and 'resample_freq' to resample"
+    ):
+        process_df(test_df, resample_freq="test")
