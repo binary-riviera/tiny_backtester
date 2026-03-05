@@ -73,8 +73,8 @@ class Engine:
     ) -> list[ExecutedOrder]:
         return [cls.execute_order(strat, order, cur_data) for order in orders]
 
-    @classmethod
-    def execute_order(cls, strat: Strategy, order: Order, cur_data: MarketData) -> ExecutedOrder:
+    @staticmethod
+    def execute_order(strat: Strategy, order: Order, cur_data: MarketData) -> ExecutedOrder:
         latest = cur_data[order.ticker].iloc[-1]
         price = get_execution_price(order.type, latest)
 
@@ -108,8 +108,8 @@ class Engine:
         logger.debug(f"unsupported order: {order}")
         return make_executed_order("unsupported")
 
-    @classmethod
-    def get_position(cls, last_pos: Position, order: ExecutedOrder, latest: pd.Series) -> Position:
+    @staticmethod
+    def get_position(last_pos: Position, order: ExecutedOrder, latest: pd.Series) -> Position:
         quantity_change = order.quantity if order.type == "buy" else -order.quantity
         quantity = last_pos.quantity + quantity_change
         entry_price = np.float64(0)
