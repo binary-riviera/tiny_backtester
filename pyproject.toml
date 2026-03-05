@@ -1,8 +1,8 @@
 [tool.poetry]
-authors = ["Daniel Cripps <binary.riviera@gmail.com>"]
+authors = ["Daniel Cripps"]
 description = "A tiny backtesting framework using Pandas"
 name = "tiny-backtester"
-packages = [{include = "tiny_backtester", from = "src"}]
+packages = [{ include = "tiny_backtester", from = "src" }]
 readme = "README.md"
 version = "0.0.2"
 
@@ -31,6 +31,4 @@ python_files = "test_*.py"
 testpaths = ["tests"]
 
 [tool.mypy]
-exclude = [
-    "src/tests",
-]
+exclude = ["src/tests"]

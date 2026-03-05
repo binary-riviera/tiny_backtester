@@ -1,5 +1,6 @@
 Todos:
 
+- set up correct entry points
 - add resampling support using pandas market calendars library for data other than 24/7
 - performance tests to work out slow points
 - support options?
@@ -8,3 +9,4 @@ Todos:
 - add rest of financial calculations required to make it full featured
 - implement example strategy
 - check spread in calculate_spread is working correctly
+- add command line interface
