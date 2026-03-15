@@ -8,6 +8,7 @@ import pandera.typing as pat
 from tiny_backtester.strategy import Strategy
 from tiny_backtester.utils.backtester_exception import BacktesterException
 from tiny_backtester.utils.backtester_types import (
+    CalendarType,
     MarketData,
     ExecutedOrder,
     Order,
@@ -63,8 +64,14 @@ class Engine:
         }
 
     @pa.check_types
-    def load_ts(self, ticker: str, df: pat.DataFrame[TimeSeries]):
-        self.market_data[ticker] = process_df(df)
+    def load_ts(
+        self,
+        ticker: str,
+        df: pat.DataFrame[TimeSeries],
+        cal: Optional[CalendarType] = None,
+        resample_freq: Optional[str] = None,
+    ):
+        self.market_data[ticker] = process_df(df, cal, resample_freq)
         logger.debug(f"added ticker data {ticker} of dims {df.shape}")
 
     @classmethod

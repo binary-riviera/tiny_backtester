@@ -65,7 +65,7 @@ def resample(
 def calculate_spread(df: pat.DataFrame[TimeSeries]) -> pat.DataFrame[TimeSeries]:
     # implementation of "A Simple Implicit Measure of the Effective Bid-Ask Spread in an Efficient Market [1984], Roll"
     delta = np.diff(df["close"].to_numpy())
-    cov = np.cov(delta)
+    cov = np.cov(delta[:-1], delta[1:])[0, 1]
     spread = 2 * np.sqrt(-cov) if cov < 0 else 0.0
     df["spread"] = spread
     logger.debug(f"calculated spread {spread}")

@@ -8,4 +8,3 @@ Todos:
 - add rest of financial calculations required to make it full featured
 - implement example strategy
 - check spread in calculate_spread is working correctly
-- add command line interface
