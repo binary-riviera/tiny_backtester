@@ -14,8 +14,7 @@ logger = logging.getLogger("tiny_backtester")
 # pricing parameters / options
 k: float = 0.5  # slippage sensitivity constant
 
-def get_execution_price(type: OrderType, row: pd.Series, options: Optional[dict] = None) -> np.float64:
-    slippage = options["slippage"] if (options and "slippage" in options) else False
+def get_execution_price(type: OrderType, row: pd.Series, slippage: bool = False) -> np.float64:
     if type == "buy":
         slippage_mult = (1 + row["slippage"]) if slippage else 1
         return np.float64((row["midpoint"] + 0.5 * row["spread"]) * slippage_mult)
@@ -29,24 +28,20 @@ def get_average_entry_price(p1: np.float64, p2: np.float64, q1: int, q2: int) ->
     return (p1 * q1 + p2 * q2) / (q1 + q2)
 
 
-def get_sampling_type(
-    df: pat.DataFrame[TimeSeries], resample_freq: str
-) -> Literal["upsample", "downsample"]:
+def get_sampling_type(df: pat.DataFrame[TimeSeries], freq: str) -> Literal["upsample", "downsample"]:
     current_nanos = to_offset(df.index.inferred_freq)
-    target_nanos = to_offset(resample_freq)
+    target_nanos = to_offset(freq)
     return "upsample" if target_nanos < current_nanos else "downsample"
 
 
 @pa.check_types
-def resample(
-    df: pat.DataFrame[TimeSeries], cal: CalendarType, resample_freq: str
-) -> pat.DataFrame[TimeSeries]:
-    logger.debug(f"resampling df with calendar: {cal} frequency: {resample_freq}")
-    match (cal, get_sampling_type(df, resample_freq)):
+def resample(df: pat.DataFrame[TimeSeries], cal: CalendarType, freq: str) -> pat.DataFrame[TimeSeries]:
+    logger.debug(f"resampling df with calendar: {cal} frequency: {freq}")
+    match (cal, get_sampling_type(df, freq)):
         case ("continuous_24_7", "upsample"):
-            return df.resample(resample_freq).ffill()
+            return df.resample(freq).ffill()
         case ("continuous_24_7", "downsample"):
-            return df.resample(resample_freq).agg(
+            return df.resample(freq).agg(
                 {
                     "open": "first",
                     "high": "max",

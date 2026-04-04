@@ -30,7 +30,7 @@ class Engine:
 
     def __init__(self, options: Optional[dict] = None):
         self.market_data: MarketData = {}
-        self.options = options
+        self.options = options if options else dict()
 
     def run(self, strat: Strategy, n_epochs: Optional[int] = None) -> RunResults:
         if not strat.funds or strat.funds <= 0:
@@ -75,16 +75,14 @@ class Engine:
         self.market_data[ticker] = process_df(df, cal, resample_freq)
         logger.debug(f"added ticker data {ticker} of dims {df.shape}")
 
-    @classmethod
     def execute_orders(
-        cls, strat: Strategy, orders: list[Order], cur_data: MarketData
+        self, strat: Strategy, orders: list[Order], cur_data: MarketData
     ) -> list[ExecutedOrder]:
-        return [cls.execute_order(strat, order, cur_data) for order in orders]
+        return [self.execute_order(strat, order, cur_data) for order in orders]
 
-    @staticmethod
-    def execute_order(strat: Strategy, order: Order, cur_data: MarketData) -> ExecutedOrder:
+    def execute_order(self, strat: Strategy, order: Order, cur_data: MarketData) -> ExecutedOrder:
         latest = cur_data[order.ticker].iloc[-1]
-        price = get_execution_price(order.type, latest)
+        price = get_execution_price(order.type, latest, self.options.get('slippage', False))
 
         def make_executed_order(status: OrderStatus) -> ExecutedOrder:
             return ExecutedOrder(
