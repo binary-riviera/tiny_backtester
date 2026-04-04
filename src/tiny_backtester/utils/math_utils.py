@@ -14,12 +14,14 @@ logger = logging.getLogger("tiny_backtester")
 # pricing parameters / options
 k: float = 0.5  # slippage sensitivity constant
 
-
-def get_execution_price(type: OrderType, row: pd.Series) -> np.float64:
+def get_execution_price(type: OrderType, row: pd.Series, options: Optional[dict] = None) -> np.float64:
+    slippage = options["slippage"] if (options and "slippage" in options) else False
     if type == "buy":
-        return np.float64((row["midpoint"] + 0.5 * row["spread"]) * (1 + row["slippage"]))
+        slippage_mult = (1 + row["slippage"]) if slippage else 1
+        return np.float64((row["midpoint"] + 0.5 * row["spread"]) * slippage_mult)
     elif type == "sell":
-        return np.float64((row["midpoint"] - 0.5 * row["spread"]) * (1 - row["slippage"]))
+        slippage_mult = (1 - row["slippage"]) if slippage else 1
+        return np.float64((row["midpoint"] - 0.5 * row["spread"]) * slippage_mult)
     return np.nan
 
 

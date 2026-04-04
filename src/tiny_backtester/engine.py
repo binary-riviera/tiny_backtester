@@ -28,8 +28,9 @@ logger = logging.getLogger("tiny_backtester")
 
 class Engine:
 
-    def __init__(self):
+    def __init__(self, options: Optional[dict] = None):
         self.market_data: MarketData = {}
+        self.options = options
 
     def run(self, strat: Strategy, n_epochs: Optional[int] = None) -> RunResults:
         if not strat.funds or strat.funds <= 0:
