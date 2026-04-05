@@ -1,7 +1,8 @@
 from tiny_backtester.utils.backtester_types import MarketData, Order
 from tiny_backtester.engine import Engine
 from tiny_backtester.strategy import Strategy
-
+import pandas as pd
+import cProfile
 
 class MovingAverageCrossover(Strategy):
 
@@ -26,7 +27,12 @@ class MovingAverageCrossover(Strategy):
 if __name__ == "__main__":
     mac = MovingAverageCrossover("TSLA")
 
-    engine = Engine()
-    engine.load_timeseries("./examples/data/TSLA.csv")
-    # print(engine.market_data["TSLA"].head())
-    results = engine.run(mac)
+    df = pd.read_csv("./examples/data/TSLA.csv", index_col="datetime")
+    df.columns = df.columns.str.lower()
+    df.index = pd.to_datetime(df.index)
+    with cProfile.Profile() as pr:
+        engine = Engine()
+        engine.load_ts("TSLA", df)
+        results = engine.run(mac)
+        pr.print_stats()
+        pr.dump_stats("mac.prof")

@@ -57,7 +57,7 @@ class Engine:
                         self.get_position(pos_info[o.ticker][-1], o, cur_data[o.ticker].iloc[-1])
                     )
             order_log.extend(executed_orders)
-            logging.debug(f"filled {len(executed_orders)}")
+            logger.debug(f"filled {len(executed_orders)}")
 
         return {
             "orders": pd.DataFrame(data=order_log),
