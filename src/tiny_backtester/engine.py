@@ -82,7 +82,7 @@ class Engine:
 
     def execute_order(self, strat: Strategy, order: Order, cur_data: MarketData) -> ExecutedOrder:
         latest = cur_data[order.ticker].iloc[-1]
-        price = get_execution_price(order.type, latest, self.options.get('slippage', False))
+        price = get_execution_price(order.type, latest, self.options.get("slippage", False))
 
         def make_executed_order(status: OrderStatus) -> ExecutedOrder:
             return ExecutedOrder(
@@ -114,13 +114,14 @@ class Engine:
         logger.debug(f"unsupported order: {order}")
         return make_executed_order("unsupported")
 
-    @staticmethod
-    def get_position(last_pos: Position, order: ExecutedOrder, latest: pd.Series) -> Position:
+    def get_position(self, last_pos: Position, order: ExecutedOrder, latest: pd.Series) -> Position:
         quantity_change = order.quantity if order.type == "buy" else -order.quantity
         quantity = last_pos.quantity + quantity_change
         entry_price = np.float64(0)
         realised_pnl = np.float64(last_pos.realised_pnl)
-        unrealised_pnl = quantity * get_execution_price("sell", latest)
+        unrealised_pnl = quantity * get_execution_price(
+            "sell", latest, self.options.get("slippage", False)
+        )
         if order.type == "buy":
             entry_price = get_average_entry_price(
                 last_pos.entry_price, order.price, last_pos.quantity, order.quantity
